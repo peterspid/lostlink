@@ -277,13 +277,13 @@ export function Avatar({ name, size = "md", tone = "ink", className }: { name: s
 }
 
 /** Lost = navy tag, Found = yellow tag. Both are cut like a luggage tag with a punched hole. */
-export function KindMark({ kind, className, size = "md" }: { kind: "lost" | "found"; className?: string; size?: "sm" | "md" }) {
+export function KindMark({ kind, className, size = "md", onDark }: { kind: "lost" | "found"; className?: string; size?: "sm" | "md"; onDark?: boolean }) {
   return (
     <span
       className={cx(
         "kind-tag inline-flex items-center rounded-r-[5px] pr-2 font-display font-extrabold leading-none",
         size === "sm" ? "h-5 text-[12px]" : "h-6 text-[13px]",
-        kind === "found" ? "bg-signal text-ink" : "bg-ink text-paper",
+        kind === "found" ? "bg-signal text-ink" : onDark ? "bg-paper text-ink" : "bg-ink text-paper",
         className,
       )}
     >

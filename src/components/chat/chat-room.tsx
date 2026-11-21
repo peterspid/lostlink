@@ -111,13 +111,15 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
                 typing…
               </span>
             ) : (
-              <Link href={`/items/${claim.item.id}`} className="hover:underline">
+              <Link href={`/items/${claim.item.id}`} className="block truncate hover:underline">
                 <span className="ref-code text-xs">{claim.item.code}</span> {claim.item.title}
               </Link>
             )}
           </p>
         </div>
-        <StatusPill status={claim.status} className="hidden sm:inline-flex" />
+        <span className="hidden sm:block">
+          <StatusPill status={claim.status} />
+        </span>
         <Link href={`/items/${claim.item.id}`} className="hidden size-10 items-center justify-center rounded-xl text-ink-2 hover:bg-wash hover:text-ink sm:flex" aria-label="Open the item">
           <ExternalLink className="size-4" />
         </Link>
@@ -137,7 +139,9 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
             {claim.status === "rejected" && "Claim declined"}
             {claim.status === "cancelled" && "Claim withdrawn"}
           </span>
-          <StatusPill status={claim.status} className="sm:hidden" />
+          <span className="sm:hidden">
+            <StatusPill status={claim.status} />
+          </span>
           <ChevronDown className={cx("size-4 transition-transform duration-200", panelOpen && "rotate-180")} aria-hidden />
         </button>
         {panelOpen && (

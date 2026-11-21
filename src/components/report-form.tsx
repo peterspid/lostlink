@@ -506,7 +506,6 @@ export function ReportForm({
               size="lg"
               variant={isFound ? "signal" : "ink"}
               className="ml-auto min-w-40"
-              icon={<ArrowRight className="size-5" aria-hidden />}
               disabled={step === 0 && photos.some((p) => !p.url && !p.error)}
               onClick={() => {
                 if (step === 1 && !validateDetails()) return;
@@ -514,6 +513,7 @@ export function ReportForm({
               }}
             >
               Continue
+              <ArrowRight className="size-5" aria-hidden />
             </Button>
           ) : (
             <Button size="lg" variant={isFound ? "signal" : "ink"} className="ml-auto min-w-40" loading={submitting} onClick={submit}>

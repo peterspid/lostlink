@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Lock } from "lucide-react";
+import { EyeOff, Lock } from "lucide-react";
 import { api, ApiError } from "@/lib/client-api";
 import { Banner, Button, Field, Input, Select, Textarea } from "@/components/ui";
 
@@ -55,17 +55,23 @@ export function ClaimForm({
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       {error && <Banner tone="error">{error}</Banner>}
       {questions.map((q, i) => (
-        <Field key={q.id} label={q.question} htmlFor={`a-${q.id}`} error={missing.has(q.id) ? "Answer this question" : null}>
-          <Input
-            id={`a-${q.id}`}
-            value={answers[q.id] ?? ""}
-            maxLength={200}
-            autoFocus={i === 0}
-            aria-invalid={missing.has(q.id)}
-            onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
-            data-testid="claim-answer"
-          />
-        </Field>
+        <div key={q.id} className="rounded-2xl border border-line bg-surface p-4">
+          <p className="mb-2 font-display text-[13px] font-extrabold text-ink-3">
+            Question {i + 1} of {questions.length}
+          </p>
+          <Field label={q.question} htmlFor={`a-${q.id}`} error={missing.has(q.id) ? "Answer this question" : null}>
+            <Input
+              id={`a-${q.id}`}
+              value={answers[q.id] ?? ""}
+              maxLength={200}
+              autoFocus={i === 0}
+              autoComplete="off"
+              aria-invalid={missing.has(q.id)}
+              onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+              data-testid="claim-answer"
+            />
+          </Field>
+        </div>
       ))}
       {myLost.length > 0 && (
         <Field label="Which of your lost reports is this?" htmlFor="lost" optional>
@@ -85,7 +91,9 @@ export function ClaimForm({
       <Button type="submit" size="lg" variant="signal" loading={busy} icon={<Lock className="size-4" aria-hidden />} data-testid="claim-submit">
         Send claim to the finder
       </Button>
-      <p className="text-sm text-ink-3">Only the finder sees your answers. Repeated wrong claims are blocked.</p>
+      <p className="flex items-start gap-2 text-sm text-ink-3">
+        <EyeOff className="mt-0.5 size-4 shrink-0" aria-hidden /> Only the finder sees your answers. Repeated wrong claims on the same item are blocked.
+      </p>
     </form>
   );
 }

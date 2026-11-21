@@ -316,12 +316,13 @@ const statusTone: Record<string, string> = {
   hidden: "bg-alert-soft text-alert",
 };
 
-export function StatusPill({ status, className }: { status: string; className?: string }) {
+/** `label` overrides the default wording, e.g. "Needs your check" for the finder of a pending claim. */
+export function StatusPill({ status, className, label }: { status: string; className?: string; label?: string }) {
   return (
     <span className={cx("inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2.5 text-[13px] font-bold", statusTone[status] ?? "bg-wash text-ink-2", className)}>
       {status === "returned" && <CheckCircle2 className="size-3.5" aria-hidden />}
       {status === "pending" && <span className="size-1.5 animate-pulse rounded-full bg-signal-deep" aria-hidden />}
-      {statusText[status] ?? status}
+      {label ?? statusText[status] ?? status}
     </span>
   );
 }

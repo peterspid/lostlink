@@ -200,6 +200,15 @@ dialog[open]::backdrop {
   animation: toast-in 320ms var(--ease-spring);
 }
 
+@keyframes toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 @keyframes pop {
   0% {
     transform: scale(0.4);

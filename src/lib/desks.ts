@@ -5,7 +5,8 @@ import type { Desk } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { conflict, forbidden, notFound } from "@/lib/api";
 import { newId, newToken, nexconnId } from "@/lib/ids";
-import { createGroup, joinGroup, leaveGroup, sendGroupMessage } from "@/lib/nexconn/server";
+import { createGroup, groupExists, joinGroup, leaveGroup, sendGroupMessage } from "@/lib/nexconn/server";
+import { ensureRegisteredIds } from "@/lib/nexconn/users";
 import { MSG } from "@/lib/nexconn/messages";
 import { firstName } from "@/lib/items";
 
@@ -28,6 +29,30 @@ export function slugify(name: string): string {
   return `${base || "desk"}-${newId().slice(0, 5)}`;
 }
 
+const groupIntro = (name: string) => `Lost & found desk staff for ${name}`;
+
+/** Groups confirmed to exist under the current App Key during this server instance's life. */
+const verifiedGroups = new Set<string>();
+
+/**
+ * Make sure the desk's staff group exists under the current App Key. After a key swap the
+ * group is recreated with the same id and every current member is registered and re-added.
+ */
+export async function ensureDeskGroup(desk: Desk): Promise<void> {
+  const key = `${env().NEXCONN_APP_KEY}:${desk.nexconnGroupId}`;
+  if (verifiedGroups.has(key)) return;
+  if (!(await groupExists(desk.nexconnGroupId))) {
+    const members = await deskMembers(desk.id);
+    await ensureRegisteredIds(members.map((m) => m.userId));
+    const owner = members.find((m) => m.userId === desk.ownerId) ?? members[0];
+    if (!owner) return;
+    await createGroup(desk.nexconnGroupId, `${desk.name} staff`, owner.nexconnId, groupIntro(desk.name));
+    const others = members.filter((m) => m.userId !== owner.userId).map((m) => m.nexconnId);
+    if (others.length) await joinGroup(desk.nexconnGroupId, others);
+  }
+  verifiedGroups.add(key);
+}
+
 export async function createDesk(
   owner: { id: string; nexconnId: string; name: string },
   input: { name: string; kind: string; description: string; hours: string; placeLabel: string; lat: number; lng: number },
@@ -35,7 +60,9 @@ export async function createDesk(
   const id = newId();
   const groupId = nexconnId(env().NEXCONN_ID_PREFIX);
   // Staff coordination happens in a Nexconn group channel owned by the desk creator.
-  await createGroup(groupId, `${input.name} staff`, owner.nexconnId, `Lost & found desk staff for ${input.name}`);
+  await ensureRegisteredIds([owner.id]);
+  await createGroup(groupId, `${input.name} staff`, owner.nexconnId, groupIntro(input.name));
+  verifiedGroups.add(`${env().NEXCONN_APP_KEY}:${groupId}`);
   const [desk] = await db()
     .insert(schema.desks)
     .values({
@@ -105,6 +132,8 @@ export async function joinDeskByToken(user: { id: string; nexconnId: string; nam
   if (!desk) throw notFound("This invite link is no longer valid. Ask the desk owner for a new one.");
   const role = await deskRole(desk.id, user.id);
   if (role) return desk;
+  await ensureDeskGroup(desk);
+  await ensureRegisteredIds([user.id]);
   await joinGroup(desk.nexconnGroupId, [user.nexconnId]);
   await db().insert(schema.deskMembers).values({ deskId: desk.id, userId: user.id, role: "staff" }).onConflictDoNothing();
   await sendGroupMessage(

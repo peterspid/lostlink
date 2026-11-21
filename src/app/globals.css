@@ -1,27 +1,31 @@
 @import "tailwindcss";
 
 /*
- * LostLink design tokens. Four colours only:
- *   paper  #F3F4F0  background
- *   ink    #1C2733  text, lost items, structure
- *   signal #F5B800  found items, primary action (wayfinding yellow, always with ink text)
- *   alert  #B3261E  errors and destructive actions
+ * LostLink design tokens: station wayfinding meets the lost-property claim ticket.
+ *   paper   #F2F3EE  cool page background
+ *   ink     #10243A  transit navy: text, Lost tags, signage panels
+ *   signal  #FFC21A  wayfinding yellow: Found tags, primary actions (always with ink text)
+ *   go      #12805C  exit-sign green: approved, returned, success
+ *   alert   #C8321E  errors and destructive actions
  * Everything else is a tint of these.
  */
 @theme {
-  --color-paper: #f3f4f0;
+  --color-paper: #f2f3ee;
   --color-surface: #ffffff;
-  --color-ink: #1c2733;
-  --color-ink-2: color-mix(in oklab, #1c2733 74%, #f3f4f0);
-  --color-ink-3: color-mix(in oklab, #1c2733 56%, #f3f4f0);
-  --color-line: color-mix(in oklab, #1c2733 13%, #ffffff);
-  --color-line-strong: color-mix(in oklab, #1c2733 26%, #ffffff);
-  --color-wash: color-mix(in oklab, #1c2733 5%, #f3f4f0);
-  --color-signal: #f5b800;
-  --color-signal-deep: color-mix(in oklab, #f5b800 82%, #1c2733);
-  --color-signal-soft: color-mix(in oklab, #f5b800 18%, #ffffff);
-  --color-alert: #b3261e;
-  --color-alert-soft: color-mix(in oklab, #b3261e 9%, #ffffff);
+  --color-ink: #10243a;
+  --color-night: #0b1a2b;
+  --color-ink-2: color-mix(in oklab, #10243a 78%, #f2f3ee);
+  --color-ink-3: color-mix(in oklab, #10243a 62%, #f2f3ee);
+  --color-line: color-mix(in oklab, #10243a 11%, #ffffff);
+  --color-line-strong: color-mix(in oklab, #10243a 22%, #ffffff);
+  --color-wash: color-mix(in oklab, #10243a 5%, #f2f3ee);
+  --color-signal: #ffc21a;
+  --color-signal-deep: #e9a900;
+  --color-signal-soft: color-mix(in oklab, #ffc21a 17%, #ffffff);
+  --color-go: #12805c;
+  --color-go-soft: color-mix(in oklab, #12805c 10%, #ffffff);
+  --color-alert: #c8321e;
+  --color-alert-soft: color-mix(in oklab, #c8321e 9%, #ffffff);
 
   --font-display: var(--font-overpass), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
@@ -29,18 +33,27 @@
   --text-2xs: 0.75rem;
   --text-2xs--line-height: 1rem;
 
-  --radius-tag: 6px;
-  --radius-sheet: 18px;
+  --radius-tag: 10px;
+  --radius-sheet: 22px;
+
+  --shadow-lift: 0 1px 0 rgb(16 36 58 / 0.04), 0 8px 24px -12px rgb(16 36 58 / 0.22);
+  --shadow-float: 0 2px 4px rgb(16 36 58 / 0.06), 0 18px 40px -16px rgb(16 36 58 / 0.35);
+  --shadow-key: inset 0 -2px 0 rgb(16 36 58 / 0.16);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 :root {
   color-scheme: light;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 3.75rem;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
 body {
@@ -48,8 +61,9 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -57,7 +71,15 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 /* Reference codes read like a claim ticket: tabular, spaced, never monospace. */
@@ -65,13 +87,13 @@ h3,
   font-family: var(--font-display);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 :focus-visible {
   outline: 3px solid var(--color-ink);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .on-ink :focus-visible {
@@ -83,37 +105,64 @@ h3,
   color: var(--color-ink);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+/* ---------- Claim-ticket details ---------- */
+
+/* Perforated edge between a ticket body and its stub. */
+.perforation-y {
+  background-image: linear-gradient(var(--color-line-strong) 55%, transparent 0);
+  background-size: 1.5px 8px;
+  background-repeat: repeat-y;
+  background-position: center;
+}
+.perforation-x {
+  background-image: linear-gradient(90deg, var(--color-line-strong) 55%, transparent 0);
+  background-size: 8px 1.5px;
+  background-repeat: repeat-x;
+  background-position: center;
 }
 
-/* Leaflet: keep tiles calm and controls in the house style. */
-.leaflet-container {
-  font-family: var(--font-sans);
-  background: var(--color-wash);
-  border-radius: inherit;
+/* Half-circle notches where a ticket tears. Place on a relatively positioned ticket. */
+.ticket-notch::before,
+.ticket-notch::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--notch-bg, var(--color-paper));
+  left: var(--notch-x, 50%);
+  transform: translateX(-50%);
 }
-.leaflet-control-zoom a {
-  color: var(--color-ink) !important;
+.ticket-notch::before {
+  top: -9px;
 }
-.leaflet-control-attribution {
-  font-size: 10px;
+.ticket-notch::after {
+  bottom: -9px;
 }
-.llk-pin {
-  background: transparent;
-  border: 0;
+
+/* Kind tags are cut like luggage tags: a pointed left edge with a punched hole. */
+.kind-tag {
+  clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 50%);
+  padding-left: 13px;
+  position: relative;
 }
+.kind-tag::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: var(--hole, var(--color-surface));
+}
+
+/* ---------- Motion ---------- */
 
 @keyframes sheet-up {
   from {
-    transform: translateY(24px);
+    transform: translateY(32px);
     opacity: 0;
   }
   to {
@@ -122,12 +171,53 @@ h3,
   }
 }
 .animate-sheet {
-  animation: sheet-up 180ms ease-out;
+  animation: sheet-up 280ms var(--ease-out-soft);
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+dialog[open]::backdrop {
+  animation: backdrop-in 200ms ease-out;
 }
 
 @keyframes toast-in {
   from {
-    transform: translateY(-8px);
+    transform: translateY(-14px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.animate-toast {
+  animation: toast-in 320ms var(--ease-spring);
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.4);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 360ms var(--ease-spring);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(10px);
     opacity: 0;
   }
   to {
@@ -135,6 +225,180 @@ h3,
     opacity: 1;
   }
 }
-.animate-toast {
-  animation: toast-in 160ms ease-out;
+.animate-rise {
+  animation: rise 420ms var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Split-flap board: each row and each code tile flips down into place on first load. */
+@keyframes flap {
+  0% {
+    transform: perspective(500px) rotateX(-92deg);
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  80% {
+    transform: perspective(500px) rotateX(12deg);
+  }
+  100% {
+    transform: perspective(500px) rotateX(0);
+    opacity: 1;
+  }
+}
+.flap {
+  transform-origin: 50% 0;
+  animation: flap 620ms var(--ease-out-soft) both;
+  animation-delay: calc(var(--i, 0) * 70ms + var(--d, 0ms));
+}
+
+/* Skeletons */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-wash) 25%, color-mix(in oklab, var(--color-wash) 40%, white) 50%, var(--color-wash) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* AI reading a photo: a scan line sweeping over the image. */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+.scan-line {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scan-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(180deg, transparent 0 78%, rgb(255 194 26 / 0.55) 96%, var(--color-signal) 100%);
+  animation: scan 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Luggage tag sways from its hole when its parent is hovered. */
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-5deg);
+  }
+  65% {
+    transform: rotate(3deg);
+  }
+}
+.group:hover .sway-on-hover {
+  animation: sway 700ms var(--ease-out-soft);
+}
+
+/* Scroll-linked pieces read --p (0..1) set by <ScrollProgress>. */
+.route-fill-x {
+  transform-origin: left center;
+  transform: scaleX(var(--p, 0));
+}
+.route-fill-y {
+  transform-origin: center top;
+  transform: scaleY(var(--p, 0));
+}
+
+/* Revealed when an ancestor gets data-shown (IntersectionObserver), staggered by --i. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  transition:
+    opacity 420ms var(--ease-out-soft),
+    transform 520ms var(--ease-out-soft);
+  transition-delay: calc(var(--i, 0) * var(--stagger, 380ms));
+}
+[data-shown] [data-reveal],
+[data-reveal][data-shown] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Directional view transitions between pages and the item photo morph. */
+::view-transition-group(.morph) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+@keyframes via-blur {
+  30% {
+    filter: blur(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  .route-fill-x,
+  .route-fill-y {
+    transform: none;
+  }
+}
+
+/* ---------- Leaflet in the house style ---------- */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-wash);
+  border-radius: inherit;
+}
+.leaflet-bar {
+  border: 1px solid var(--color-line-strong) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-lift) !important;
+}
+.leaflet-bar a {
+  color: var(--color-ink) !important;
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+  border-top-left-radius: 6px;
+}
+.leaflet-tile-pane {
+  filter: saturate(0.82) contrast(0.98);
+}
+.llk-pin {
+  background: transparent;
+  border: 0;
+}
+.llk-pin:hover {
+  z-index: 1000 !important;
 }

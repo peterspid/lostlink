@@ -5,7 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { ExternalLink, Plus } from "lucide-react";
 import { db, schema } from "@/lib/db";
 import { currentUser } from "@/lib/auth/session";
-import { deskMembers, deskRole, getDeskBySlug } from "@/lib/desks";
+import { deskMembers, deskRole, ensureDeskGroup, getDeskBySlug } from "@/lib/desks";
 import { firstName } from "@/lib/items";
 import { ItemTag } from "@/components/item-tag";
 import { Banner, EmptyState, LinkButton } from "@/components/ui";
@@ -24,6 +24,8 @@ export default async function ManageDeskPage({ params, searchParams }: PageProps
   const role = await deskRole(desk.id, me.id);
   if (!role) redirect(`/desks/${slug}`);
   const isOwner = desk.ownerId === me.id;
+  // The staff chat needs the Nexconn group; recreate it if the App Key changed since the desk was made.
+  await ensureDeskGroup(desk).catch((err) => console.error("[desk] group check failed", err));
 
   const [members, inventory] = await Promise.all([
     deskMembers(desk.id),

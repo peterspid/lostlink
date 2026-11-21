@@ -5,6 +5,7 @@ import { currentUser } from "@/lib/auth/session";
 import { AppShell } from "@/components/app-shell";
 import { appUrl } from "@/lib/env";
 
+// Overpass descends from US highway signage; Atkinson Hyperlegible was drawn for low-vision readers.
 const overpass = Overpass({
   variable: "--font-overpass",
   subsets: ["latin"],
@@ -18,19 +19,23 @@ const atkinson = Atkinson_Hyperlegible_Next({
   display: "swap",
 });
 
+const description =
+  "Post what you lost or found in under a minute. LostLink matches lost and found posts, checks who the real owner is, and opens a private chat to arrange the handover. No phone numbers swapped.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl()),
   title: { default: "LostLink: lost & found that reunites people with their things", template: "%s | LostLink" },
-  description:
-    "Post what you lost or found in under a minute. LostLink matches lost and found posts, checks ownership, and lets you arrange the handover in a private chat.",
+  description,
   applicationName: "LostLink",
+  keywords: ["lost and found", "lost property", "found item", "lost wallet", "lost phone", "lost keys", "campus lost and found", "QR lost and found desk"],
   appleWebApp: { capable: true, title: "LostLink", statusBarStyle: "default" },
-  openGraph: { siteName: "LostLink", type: "website" },
-  icons: { icon: "/icons/192", apple: "/icons/180" },
+  formatDetection: { telephone: false },
+  openGraph: { siteName: "LostLink", type: "website", locale: "en", description },
+  twitter: { card: "summary_large_image", description },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f3f4f0",
+  themeColor: "#f2f3ee",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

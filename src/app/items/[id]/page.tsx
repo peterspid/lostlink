@@ -88,7 +88,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
   const from = typeof sp.from === "string" ? sp.from : undefined;
   const a = pub.attributes;
   const specs = [
-    ["Colour", a.color],
+    ["Color", a.color],
     ["Brand", a.brand],
     ["Material", a.material],
     ["Marks", a.marks?.length ? a.marks.join(", ") : undefined],

@@ -4,9 +4,24 @@ import QRCode from "qrcode";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { Desk } from "@/lib/db/schema";
 
-export const INK = "#1C2733";
-export const PAPER = "#F3F4F0";
-export const SIGNAL = "#F5B800";
+export const INK = "#10243A";
+export const PAPER = "#F2F3EE";
+export const SIGNAL = "#FFC21A";
+export const MUTED = "#4F5D6C";
+
+/** The luggage-tag mark for server-rendered images (posters, Open Graph cards). */
+export function BrandMark({ size, line = INK }: { size: number; line?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48">
+      <g transform="rotate(-14 24 26)">
+        <path d="M24 11.5c0-6 3.8-9.5 9-9" fill="none" stroke={line} strokeWidth="2.8" strokeLinecap="round" />
+        <path d="M18 8h12l7.5 7.5V40a3.5 3.5 0 0 1-3.5 3.5H14A3.5 3.5 0 0 1 10.5 40V15.5z" fill={SIGNAL} stroke={line} strokeWidth="2.8" strokeLinejoin="round" />
+        <circle cx="24" cy="15" r="3" fill={PAPER} stroke={line} strokeWidth="2.6" />
+        <path d="M15.5 34h17" stroke={INK} strokeWidth="2.6" strokeLinecap="round" strokeDasharray="2.6 3" />
+      </g>
+    </svg>
+  );
+}
 
 let fontCache: ArrayBuffer | null | undefined;
 
@@ -48,7 +63,7 @@ export async function posterPng(desk: Desk, url: string): Promise<Response> {
           <div style={{ fontSize: 48, fontWeight: 800, marginTop: 60, textAlign: "center", lineHeight: 1.2 }}>
             Scan to see what has been handed in
           </div>
-          <div style={{ fontSize: 34, marginTop: 24, color: "#4A5562" }}>{shortUrl}</div>
+          <div style={{ fontSize: 34, marginTop: 24, color: MUTED }}>{shortUrl}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", background: INK, color: PAPER, padding: "56px 96px" }}>
           <div style={{ fontSize: 40, fontWeight: 800 }}>Found something? Bring it to the desk.</div>
@@ -56,7 +71,9 @@ export async function posterPng(desk: Desk, url: string): Promise<Response> {
             {[desk.placeLabel, desk.hours].filter(Boolean).join(". ") || "Staff will log it so the owner can find it."}
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: 40 }}>
-            <div style={{ width: 44, height: 44, background: SIGNAL, borderRadius: 10, marginRight: 18 }} />
+            <div style={{ display: "flex", marginRight: 16 }}>
+              <BrandMark size={60} line={PAPER} />
+            </div>
             <div style={{ fontSize: 40, fontWeight: 800 }}>LostLink</div>
           </div>
         </div>
@@ -103,7 +120,7 @@ export async function posterPdf(desk: Desk, url: string): Promise<Uint8Array> {
   page.drawText(line1, { x: (width - bold.widthOfTextAtSize(line1, 22)) / 2, y: qrY - 60, size: 22, font: bold, color: hex(INK) });
   const shortUrl = url.replace(/^https?:\/\//, "");
   const urlSize = 13;
-  page.drawText(shortUrl, { x: (width - regular.widthOfTextAtSize(shortUrl, urlSize)) / 2, y: qrY - 86, size: urlSize, font: regular, color: hex("#4A5562") });
+  page.drawText(shortUrl, { x: (width - regular.widthOfTextAtSize(shortUrl, urlSize)) / 2, y: qrY - 86, size: urlSize, font: regular, color: hex(MUTED) });
 
   page.drawRectangle({ x: 0, y: 0, width, height: 170, color: hex(INK) });
   page.drawText("Found something? Bring it to the desk.", { x: m, y: 120, size: 18, font: bold, color: hex(PAPER) });

@@ -51,16 +51,18 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <section className="on-ink overflow-hidden rounded-[28px] bg-ink text-paper shadow-[var(--shadow-float)]">
-        <div className="flex flex-wrap items-center gap-4 p-6">
+        <div className="flex flex-wrap items-center gap-4 p-5 sm:p-6">
           <Avatar name={me.name} size="lg" tone="signal" />
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[30px] font-black leading-tight">{me.name}</h1>
-            <p className="truncate text-paper/65">{me.email}</p>
+            <h1 className="text-[26px] font-black leading-tight [overflow-wrap:anywhere] sm:text-[30px]">{me.name}</h1>
+            <p className="truncate text-[15px] text-paper/65">{me.email}</p>
           </div>
-          <SignOutButton />
+          <div className="w-full sm:w-auto [&>button]:w-full">
+            <SignOutButton />
+          </div>
         </div>
         <div className="grid grid-cols-2 border-t border-white/10">
-          <div className="flex items-center gap-3 p-5">
+          <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
             <span className="flex size-11 items-center justify-center rounded-xl bg-signal text-ink" aria-hidden>
               <Award className="size-5" />
             </span>
@@ -71,7 +73,7 @@ export default async function ProfilePage() {
               <span className="text-sm text-paper/65">Karma from returning things</span>
             </span>
           </div>
-          <div className="flex items-center gap-3 border-l border-white/10 p-5">
+          <div className="flex flex-col gap-3 border-l border-white/10 p-5 sm:flex-row sm:items-center">
             <span className="flex size-11 items-center justify-center rounded-xl bg-go text-white" aria-hidden>
               <PackageCheck className="size-5" />
             </span>

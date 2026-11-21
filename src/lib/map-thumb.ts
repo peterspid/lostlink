@@ -59,10 +59,10 @@ export async function locationThumbnail(lat: number, lng: number): Promise<strin
   // Pin: signal-yellow tag on an ink stem.
   const cx = W / 2;
   const cy = H / 2;
-  ctx.fillStyle = "#1C2733";
+  ctx.fillStyle = "#10243A";
   ctx.fillRect(cx - 1, cy - 4, 2, 10);
-  ctx.fillStyle = "#F5B800";
-  ctx.strokeStyle = "#1C2733";
+  ctx.fillStyle = "#FFC21A";
+  ctx.strokeStyle = "#10243A";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.roundRect(cx - 9, cy - 22, 18, 18, 4);
@@ -79,7 +79,7 @@ export async function locationThumbnail(lat: number, lng: number): Promise<strin
     x.fillStyle = "#E7E9E3";
     x.fillRect(0, 0, W, H);
     x.drawImage(canvas, 0, 0, 0, 0);
-    x.fillStyle = "#F5B800";
+    x.fillStyle = "#FFC21A";
     x.fillRect(cx - 9, cy - 22, 18, 18);
     return canvasToBase64(c2, 0.55);
   }

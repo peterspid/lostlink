@@ -95,7 +95,7 @@ src/app/                    pages (App Router) and API route handlers
   desks/ (new, [slug], [slug]/manage, join/[token])
   api/                      REST endpoints (auth, items, claims, alerts, desks, uploads, ai, cron…)
   manifest.ts offline/ icon.svg favicon.ico apple-icon.png   PWA + icons (scripts/generate-icons.mjs)
-  robots.ts sitemap.ts opengraph-image.tsx privacy/ error.tsx global-error.tsx loading.tsx
+  robots.ts sitemap.ts opengraph-image.tsx privacy/ error.tsx global-error.tsx
 src/components/
   chat/                     chat-provider (SDK engine), use-conversation (history, live, sends),
                             chat-room (claim flow), group-chat, message-view (ticket cards), composer

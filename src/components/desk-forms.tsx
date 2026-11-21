@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, Copy, Download, RefreshCw, UserMinus, Users } from "lucide-react";
+import { Check, Copy, Download, RefreshCw, UserMinus } from "lucide-react";
 import { api, ApiError } from "@/lib/client-api";
 import { LocationField, type LocationValue } from "@/components/location-field";
-import { Banner, Button, Field, Input, Select, Textarea, buttonClass } from "@/components/ui";
+import { Avatar, Banner, Button, Field, Input, Select, Textarea, buttonClass } from "@/components/ui";
 
 const KINDS = [
   ["campus", "Campus"],
@@ -136,9 +136,9 @@ export function StaffList({ deskId, members, ownerId, isOwner }: { deskId: strin
   return (
     <ul className="flex flex-col gap-2" data-testid="staff-list">
       {members.map((m) => (
-        <li key={m.userId} className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3">
-          <Users className="size-4" aria-hidden />
-          <span className="flex-1">{m.name}</span>
+        <li key={m.userId} className="flex items-center gap-3 rounded-2xl border border-line bg-paper/60 p-2.5">
+          <Avatar name={m.name} size="sm" tone={m.userId === ownerId ? "signal" : "ink"} />
+          <span className="flex-1 font-semibold">{m.name}</span>
           <span className="text-sm text-ink-2">{m.userId === ownerId ? "Owner" : "Staff"}</span>
           {isOwner && m.userId !== ownerId && (
             <Button

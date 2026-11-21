@@ -9,16 +9,21 @@ import { useRouter } from "next/navigation";
 const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+/** Map pins are luggage-tag teardrops with a punched hole: yellow for found, navy for lost and desks. */
 function pinIcon(kind: "lost" | "found" | "pick" | "desk", label?: string) {
-  const bg = kind === "found" || kind === "pick" ? "#F5B800" : kind === "desk" ? "#1C2733" : "#FFFFFF";
-  const fg = kind === "desk" ? "#F3F4F0" : "#1C2733";
-  const text = label ? `<span style="font:800 11px/1 var(--font-overpass),sans-serif;color:${fg};letter-spacing:.04em">${label}</span>` : "";
+  const bg = kind === "found" || kind === "pick" ? "#FFC21A" : kind === "lost" ? "#FFFFFF" : "#10243A";
+  const hole = kind === "desk" ? "#FFC21A" : kind === "lost" ? "#10243A" : "#F2F3EE";
+  const badge = label
+    ? `<span style="position:absolute;left:24px;top:-6px;padding:2px 6px;border-radius:999px;background:#10243A;color:#FFC21A;font:800 11px/1.2 var(--font-overpass),sans-serif;letter-spacing:.04em;white-space:nowrap">${label}</span>`
+    : "";
   const html = `
-    <div style="display:flex;flex-direction:column;align-items:center;transform:translateY(-4px)">
-      <div style="min-width:26px;height:26px;padding:0 6px;display:flex;align-items:center;justify-content:center;background:${bg};border:2px solid #1C2733;border-radius:6px;box-shadow:0 2px 6px rgba(28,39,51,.25)">${text}</div>
-      <div style="width:2px;height:10px;background:#1C2733"></div>
+    <div style="position:relative;width:30px;height:38px">
+      <div style="position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${bg};border:2.5px solid #10243A;box-shadow:0 6px 14px -4px rgba(16,36,58,.45);display:flex;align-items:center;justify-content:center">
+        <div style="width:9px;height:9px;border-radius:999px;background:${hole};border:2px solid #10243A"></div>
+      </div>
+      ${badge}
     </div>`;
-  return L.divIcon({ html, className: "llk-pin", iconSize: [40, 40], iconAnchor: [20, 38] });
+  return L.divIcon({ html, className: "llk-pin", iconSize: [30, 38], iconAnchor: [15, 36] });
 }
 
 export interface MapMarker {
@@ -61,7 +66,7 @@ export function ItemsMap({
   return (
     <MapContainer center={initial} zoom={markers.length || center ? 14 : 4} scrollWheelZoom={false} className={className} attributionControl>
       <TileLayer url={TILE_URL} attribution={ATTRIBUTION} />
-      {center && radiusM && <Circle center={center} radius={radiusM} pathOptions={{ color: "#1C2733", weight: 1.5, fillOpacity: 0.04 }} />}
+      {center && radiusM && <Circle center={center} radius={radiusM} pathOptions={{ color: "#10243A", weight: 1.5, fillOpacity: 0.04 }} />}
       {markers.map((m) => (
         <Marker
           key={m.id}
@@ -72,7 +77,7 @@ export function ItemsMap({
         />
       ))}
       {fuzzRadiusM && markers[0] && (
-        <Circle center={[markers[0].lat, markers[0].lng]} radius={fuzzRadiusM} pathOptions={{ color: "#1C2733", weight: 1, dashArray: "4 4", fillOpacity: 0.06 }} />
+        <Circle center={[markers[0].lat, markers[0].lng]} radius={fuzzRadiusM} pathOptions={{ color: "#10243A", weight: 1, dashArray: "4 4", fillOpacity: 0.06 }} />
       )}
       <FitBounds markers={markers} center={center} />
     </MapContainer>
@@ -128,7 +133,7 @@ export function PickerMap({
           }}
         />
       )}
-      {point && radiusM && <Circle center={point} radius={radiusM} pathOptions={{ color: "#1C2733", weight: 1.5, fillOpacity: 0.05 }} />}
+      {point && radiusM && <Circle center={point} radius={radiusM} pathOptions={{ color: "#10243A", weight: 1.5, fillOpacity: 0.05 }} />}
     </MapContainer>
   );
 }

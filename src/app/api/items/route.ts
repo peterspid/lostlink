@@ -1,8 +1,8 @@
 import { NextResponse, after } from "next/server";
-import { eq } from "drizzle-orm";
-import { db, schema } from "@/lib/db";
+import type { Desk } from "@/lib/db/schema";
 import { forbidden, handle, parseJson, requireUser } from "@/lib/api";
-import { createItem, isDeskStaff } from "@/lib/items";
+import { createItem, firstName, isDeskStaff } from "@/lib/items";
+import { ensureDeskGroup, getDesk } from "@/lib/desks";
 import { checkAlerts, runMatching } from "@/lib/matching";
 import { rateLimit } from "@/lib/ratelimit";
 import { searchItems, searchParamsSchema } from "@/lib/search";
@@ -23,14 +23,10 @@ export const POST = handle(async (req: Request) => {
   const me = await requireUser();
   await rateLimit(`post:${me.id}`, 20, 3600, "You've posted a lot this hour. Try again later.");
   const input = await parseJson(req, itemCreateSchema);
-  let deskGroup: { id: string; name: string; group: string } | null = null;
+  let desk: Desk | null = null;
   if (input.deskId) {
     if (!(await isDeskStaff(input.deskId, me.id))) throw forbidden("Only desk staff can log items for this desk.");
-    const [d] = await db()
-      .select({ id: schema.desks.id, name: schema.desks.name, group: schema.desks.nexconnGroupId })
-      .from(schema.desks)
-      .where(eq(schema.desks.id, input.deskId));
-    deskGroup = d ?? null;
+    desk = await getDesk(input.deskId);
   }
 
   const item = await createItem(me.id, input);
@@ -50,20 +46,24 @@ export const POST = handle(async (req: Request) => {
     await checkAlerts(item).catch((err) => console.error("[items] alerts failed", err));
   });
 
-  if (deskGroup) {
-    const group = deskGroup;
+  if (desk) {
+    const d = desk;
     after(() =>
-    sendGroupMessage(
-      group.group,
-      MSG.DESK,
-      {
-        deskId: group.id,
-        title: `${me.name} logged "${item.title}"`,
-        body: `Ref ${item.code}${item.placeLabel ? `, found at ${item.placeLabel}` : ""}.`,
-        href: `/items/${item.id}`,
-      },
-      `New item logged: ${item.title}`,
-    ).catch((err) => console.error("[items] desk notice failed", err)),
+      ensureDeskGroup(d)
+        .then(() =>
+          sendGroupMessage(
+            d.nexconnGroupId,
+            MSG.DESK,
+            {
+              deskId: d.id,
+              title: `${firstName(me.name)} logged "${item.title}"`,
+              body: `Ref ${item.code}${item.placeLabel ? `, found at ${item.placeLabel}` : ""}.`,
+              href: `/items/${item.id}`,
+            },
+            `New item logged: ${item.title}`,
+          ),
+        )
+        .catch((err) => console.error("[items] desk notice failed", err)),
     );
   }
 

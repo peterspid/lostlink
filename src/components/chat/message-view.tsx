@@ -59,7 +59,7 @@ export interface CardHandlers {
 
 export function MessageView({ m, senderName, handlers }: { m: ChatMessage; senderName?: string; handlers: CardHandlers }) {
   const c = m.content;
-  if (m.type === MSG.CLAIM) return <ClaimCard m={m} content={c as unknown as ClaimCardContent} fallbackStatus={handlers.claimStatus} />;
+  if (m.type === MSG.CLAIM) return <ClaimCard m={m} content={c as unknown as ClaimCardContent} fallbackStatus={handlers.claimStatus} role={handlers.role} />;
   if (m.type === MSG.RESULT) return <ResultCard content={c as unknown as ClaimResultContent} time={m.sentTime} />;
   if (m.type === MSG.HANDOVER) return <HandoverCard m={m} content={c as unknown as HandoverCardContent} handlers={handlers} />;
   if (m.type === MSG.DESK) return <DeskNotice content={c as unknown as DeskNoticeContent} time={m.sentTime} />;
@@ -197,8 +197,9 @@ function Ticket({
   );
 }
 
-function ClaimCard({ m, content, fallbackStatus }: { m: ChatMessage; content: ClaimCardContent; fallbackStatus?: string }) {
+function ClaimCard({ m, content, fallbackStatus, role }: { m: ChatMessage; content: ClaimCardContent; fallbackStatus?: string; role?: "owner" | "finder" }) {
   const status = m.metadata.status ?? fallbackStatus ?? "pending";
+  const label = status === "pending" && role === "finder" ? "Needs your check" : undefined;
   return (
     <Ticket
       testid="claim-card"
@@ -210,7 +211,7 @@ function ClaimCard({ m, content, fallbackStatus }: { m: ChatMessage; content: Cl
       }
       footer={
         <>
-          <StatusPill status={status} />
+          <StatusPill status={status} label={label} />
           <span className="text-xs text-ink-3">{timeLabel(m.sentTime)}</span>
         </>
       }

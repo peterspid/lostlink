@@ -161,7 +161,7 @@ export function ChatList({ claims, desks }: { claims: ClaimListEntry[]; desks: D
                     </span>
                     <span className="flex flex-col items-end gap-1.5">
                       <span className="text-xs text-ink-3">{info?.time ? timeAgo(new Date(info.time)) : timeAgo(c.createdAt)}</span>
-                      {unread ? <Unread n={info!.unread} /> : <StatusPill status={c.status} className="h-5 text-[11px]" />}
+                      {unread ? <Unread n={info!.unread} /> : <StatusPill status={c.status} label={c.role === "finder" && c.status === "pending" ? "Needs your check" : undefined} className="h-5 text-[11px]" />}
                     </span>
                   </Link>
                 </li>

@@ -81,6 +81,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
   const markReturned = () => run("returned", () => api(`/api/claims/${claim.id}/returned`, { method: "POST" }));
 
   const isFinder = claim.role === "finder";
+  const pendingLabel = isFinder && claim.status === "pending" ? "Needs your check" : undefined;
   const closed = claim.status === "rejected" || claim.status === "cancelled";
   const blocked = blockedByMe || claim.blockedMe;
   const composerDisabled = blocked || (closed && !isFinder) || claim.status === "cancelled";
@@ -118,7 +119,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
           </p>
         </div>
         <span className="hidden sm:block">
-          <StatusPill status={claim.status} />
+          <StatusPill status={claim.status} label={pendingLabel} />
         </span>
         <Link href={`/items/${claim.item.id}`} className="hidden size-10 items-center justify-center rounded-xl text-ink-2 hover:bg-wash hover:text-ink sm:flex" aria-label="Open the item">
           <ExternalLink className="size-4" />
@@ -140,7 +141,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
             {claim.status === "cancelled" && "Claim withdrawn"}
           </span>
           <span className="sm:hidden">
-            <StatusPill status={claim.status} />
+            <StatusPill status={claim.status} label={pendingLabel} />
           </span>
           <ChevronDown className={cx("size-4 transition-transform duration-200", panelOpen && "rotate-180")} aria-hidden />
         </button>

@@ -94,12 +94,16 @@ export function MessageView({ m, senderName, handlers }: { m: ChatMessage; sende
       <a href={osmLink(lat, lng)} target="_blank" rel="noreferrer" className="block w-[230px]" data-testid="location-message">
         <span className="relative block h-[120px] bg-wash">
           {c.thumbnailBase64 ? (
+            // The thumbnail already carries a pin at its centre.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={`data:image/jpeg;base64,${c.thumbnailBase64}`} alt="" className="size-full object-cover" />
-          ) : null}
-          <span className="absolute left-1/2 top-1/2 flex size-9 -translate-x-1/2 -translate-y-full items-center justify-center rounded-full rounded-bl-none bg-signal text-ink shadow-[var(--shadow-lift)] [transform:translate(-50%,-100%)_rotate(-45deg)]">
-            <MapPin className="size-4 rotate-45" aria-hidden />
-          </span>
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex size-10 items-center justify-center rounded-full bg-signal text-ink shadow-[var(--shadow-lift)]">
+                <MapPin className="size-5" aria-hidden />
+              </span>
+            </span>
+          )}
         </span>
         <span className="flex items-start gap-1.5 px-3 pt-2 font-display text-[15px] font-bold leading-snug">{String(c.poi ?? "Shared location")}</span>
         <span className="flex items-center gap-1 px-3 pb-2.5 text-xs font-semibold opacity-75">

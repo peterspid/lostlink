@@ -11,7 +11,7 @@ export function SignOutButton() {
   const [busy, setBusy] = useState(false);
   return (
     <Button
-      variant="outline"
+      variant="paper"
       loading={busy}
       icon={<LogOut className="size-4" aria-hidden />}
       onClick={async () => {
@@ -59,12 +59,12 @@ export function DeleteAccount() {
     );
   }
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-alert/40 bg-alert-soft p-3">
+    <div className="flex flex-col gap-2 rounded-2xl border border-alert/40 bg-alert-soft p-4">
       <p className="text-[15px]">This deletes your posts, claims, alerts and desks. Type DELETE to confirm.</p>
       <div className="flex gap-2">
         <input
           aria-label="Type DELETE to confirm"
-          className="h-10 flex-1 rounded-lg border border-line-strong bg-surface px-3"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-line-strong bg-surface px-3"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />

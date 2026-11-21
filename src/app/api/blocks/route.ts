@@ -17,8 +17,10 @@ export const POST = handle(async (req: Request) => {
   const { userId } = await parseJson(req, blockSchema);
   if (userId === me.id) throw badRequest("You can't block yourself.");
   const other = await target(userId);
+  // Postgres is the source of truth (claims, composer); the Nexconn blocklist also stops direct
+  // messages at the chat layer and is re-synced whenever the user is registered again.
   await db().insert(schema.blocks).values({ blockerId: me.id, blockedId: other.id }).onConflictDoNothing();
-  await addToBlocklist(me.nexconnId, [other.nexconnId]);
+  await addToBlocklist(me.nexconnId, [other.nexconnId]).catch((err) => console.error("[blocks] nexconn add failed", err));
   return NextResponse.json({ ok: true });
 });
 
@@ -27,6 +29,6 @@ export const DELETE = handle(async (req: Request) => {
   const { userId } = await parseJson(req, blockSchema);
   const other = await target(userId);
   await db().delete(schema.blocks).where(and(eq(schema.blocks.blockerId, me.id), eq(schema.blocks.blockedId, other.id)));
-  await removeFromBlocklist(me.nexconnId, [other.nexconnId]);
+  await removeFromBlocklist(me.nexconnId, [other.nexconnId]).catch((err) => console.error("[blocks] nexconn remove failed", err));
   return NextResponse.json({ ok: true });
 });

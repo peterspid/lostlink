@@ -2,19 +2,19 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowLeft, BadgeCheck, CheckCircle2, ChevronDown, ChevronUp, Heart, PackageCheck, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, CheckCircle2, ChevronDown, ExternalLink, Heart, MapPin, PackageCheck, ShieldCheck, X } from "lucide-react";
 import type { ClaimView } from "@/lib/claim-view";
 import { api, ApiError } from "@/lib/client-api";
 import { locationThumbnail } from "@/lib/map-thumb";
 import { MSG } from "@/lib/nexconn/messages";
 import { useChat, useChatEvents } from "@/components/chat/chat-provider";
 import { useConversation } from "@/components/chat/use-conversation";
-import { MessageView } from "@/components/chat/message-view";
+import { DayDivider, MessageView, withDayDividers } from "@/components/chat/message-view";
 import { Composer } from "@/components/chat/composer";
 import { LocationField, type LocationValue } from "@/components/location-field";
 import { SafetyMenu } from "@/components/item-actions";
 import { Sheet } from "@/components/sheet";
-import { Banner, Button, Field, Input, Spinner, StatusPill, Textarea, cx } from "@/components/ui";
+import { Avatar, Banner, Button, Field, Input, Spinner, StatusPill, Textarea, cx } from "@/components/ui";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const localInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -93,38 +93,44 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
         : "This claim was withdrawn.";
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-3xl flex-col bg-paper">
+    <div className="mx-auto flex h-dvh max-w-3xl flex-col bg-paper md:h-[calc(100dvh-var(--header-h))] md:border-x md:border-line">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-line bg-surface px-2 py-2">
-        <Link href="/chats" className="flex size-10 items-center justify-center rounded-lg hover:bg-wash" aria-label="Back to chats">
+      <div className="flex items-center gap-2.5 border-b border-line bg-surface px-2 py-2" style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
+        <Link href="/chats" className="flex size-10 shrink-0 items-center justify-center rounded-xl hover:bg-wash" aria-label="Back to chats">
           <ArrowLeft className="size-5" />
         </Link>
+        <Avatar name={claim.other.name} tone={isFinder ? "wash" : "ink"} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-[17px] font-extrabold leading-tight" data-testid="chat-title">
             {claim.other.name}
-            <span className="ml-2 text-sm font-semibold text-ink-3">{isFinder ? "says it's theirs" : "found it"}</span>
+            <span className="ml-2 font-sans text-sm font-semibold text-ink-3">{isFinder ? "says it's theirs" : "found it"}</span>
           </p>
           <p className="truncate text-sm text-ink-2">
             {convo.typing ? (
-              <span className="font-semibold text-ink" data-testid="typing">
+              <span className="font-bold text-go" data-testid="typing">
                 typing…
               </span>
             ) : (
-              <>
+              <Link href={`/items/${claim.item.id}`} className="hover:underline">
                 <span className="ref-code text-xs">{claim.item.code}</span> {claim.item.title}
-              </>
+              </Link>
             )}
           </p>
         </div>
         <StatusPill status={claim.status} className="hidden sm:inline-flex" />
+        <Link href={`/items/${claim.item.id}`} className="hidden size-10 items-center justify-center rounded-xl text-ink-2 hover:bg-wash hover:text-ink sm:flex" aria-label="Open the item">
+          <ExternalLink className="size-4" />
+        </Link>
         <SafetyMenu userId={claim.other.id} userName={claim.other.name} blocked={blockedByMe} onBlockedChange={setBlockedByMe} />
       </div>
 
       {/* Claim panel */}
       <div className="border-b border-line bg-surface">
-        <button className="flex w-full items-center gap-2 px-4 py-2.5 text-left" onClick={() => setPanelOpen((o) => !o)} aria-expanded={panelOpen}>
-          <ShieldCheck className="size-4 shrink-0" aria-hidden />
-          <span className="flex-1 text-[15px] font-semibold">
+        <button className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left hover:bg-wash/60" onClick={() => setPanelOpen((o) => !o)} aria-expanded={panelOpen}>
+          <span className={cx("flex size-7 shrink-0 items-center justify-center rounded-lg", claim.status === "approved" || claim.status === "returned" ? "bg-go text-white" : "bg-ink text-signal")}>
+            <ShieldCheck className="size-4" aria-hidden />
+          </span>
+          <span className="flex-1 font-display text-[15px] font-bold">
             {claim.status === "pending" && (isFinder ? "Check their answers" : `Waiting for ${claim.other.name} to check your answers`)}
             {claim.status === "approved" && (claim.handover?.status === "accepted" ? "Handover agreed" : "Approved: arrange the handover")}
             {claim.status === "returned" && "Returned. Case closed."}
@@ -132,24 +138,27 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
             {claim.status === "cancelled" && "Claim withdrawn"}
           </span>
           <StatusPill status={claim.status} className="sm:hidden" />
-          {panelOpen ? <ChevronUp className="size-4" aria-hidden /> : <ChevronDown className="size-4" aria-hidden />}
+          <ChevronDown className={cx("size-4 transition-transform duration-200", panelOpen && "rotate-180")} aria-hidden />
         </button>
         {panelOpen && (
-          <div className="max-h-[45dvh] overflow-y-auto border-t border-line px-4 py-3" data-testid="claim-panel">
+          <div className="animate-rise max-h-[45dvh] overflow-y-auto border-t border-line px-4 py-3.5" data-testid="claim-panel">
             {!isFinder && claim.other.returnedCount > 0 && (
-              <p className="mb-2 flex items-center gap-1.5 text-sm text-ink-2">
-                <BadgeCheck className="size-4" aria-hidden /> {claim.other.name} has returned {claim.other.returnedCount} item{claim.other.returnedCount === 1 ? "" : "s"} ({claim.other.karma} karma).
+              <p className="mb-3 flex items-center gap-1.5 rounded-xl bg-go-soft px-3 py-2 text-sm text-ink">
+                <BadgeCheck className="size-4 text-go" aria-hidden /> {claim.other.name} has returned {claim.other.returnedCount} item{claim.other.returnedCount === 1 ? "" : "s"} ({claim.other.karma} karma).
               </p>
             )}
             <ul className="flex flex-col gap-2.5">
               {claim.answers.map((a, i) => (
-                <li key={i} className="rounded-lg border border-line p-3">
+                <li
+                  key={i}
+                  className={cx("rounded-xl border p-3", isFinder && a.expected !== undefined ? (a.looksRight ? "border-go/40 bg-go-soft/60" : "border-alert/35 bg-alert-soft/60") : "border-line")}
+                >
                   <p className="text-sm text-ink-3">{a.question}</p>
-                  <p className="mt-0.5 font-semibold" data-testid="panel-answer">
+                  <p className="mt-0.5 font-display text-[17px] font-bold" data-testid="panel-answer">
                     {a.answer}
                   </p>
                   {isFinder && a.expected !== undefined && (
-                    <p className={cx("mt-1.5 flex items-center gap-1.5 text-sm", a.looksRight ? "text-ink" : "text-alert")}>
+                    <p className={cx("mt-1.5 flex items-center gap-1.5 text-sm font-semibold", a.looksRight ? "text-go" : "text-alert")}>
                       {a.looksRight ? <CheckCircle2 className="size-4" aria-hidden /> : <X className="size-4" aria-hidden />}
                       Your answer: {a.expected}
                     </p>
@@ -157,7 +166,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
                 </li>
               ))}
             </ul>
-            {claim.note && <p className="mt-2.5 rounded-md bg-wash p-2.5 text-[15px]">&ldquo;{claim.note}&rdquo;</p>}
+            {claim.note && <p className="mt-2.5 rounded-xl bg-wash p-3 text-[15px]">&ldquo;{claim.note}&rdquo;</p>}
             {isFinder && claim.status === "pending" && <DecisionButtons busy={busy} onDecide={decide} />}
             {!isFinder && claim.status === "pending" && (
               <Button
@@ -182,7 +191,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
       </div>
 
       {/* Messages */}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-4" aria-live="polite" data-testid="message-list">
+      <div ref={listRef} className="flex-1 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite" data-testid="message-list">
         {justClaimed && claim.status === "pending" && (
           <div className="mb-4">
             <Banner tone="success" title="Claim sent">
@@ -205,37 +214,45 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
           <Banner tone="error">{convo.error}</Banner>
         ) : (
           <div className="flex flex-col gap-3">
-            {convo.messages.map((m) => (
-              <MessageView
-                key={m.id}
-                m={m}
-                handlers={{
+            {convo.messages.length === 0 && <p className="py-10 text-center text-[15px] text-ink-3">No messages yet. Say hello to {claim.other.name}.</p>}
+            {withDayDividers(convo.messages).map((row) =>
+              row.kind === "day" ? (
+                <DayDivider key={row.id} label={row.label} />
+              ) : (
+                <MessageView
+                  key={row.m.id}
+                  m={row.m}
+                  handlers={{
                   claimStatus: claim.status,
                   role: claim.role,
                   myUserId: convo.me,
                   onRespondHandover: claim.status === "approved" ? respondHandover : undefined,
                   handoverBusy: busy === "handover",
                   activeHandoverMessageId: claim.handover?.status === "proposed" ? claim.handover.messageId : null,
-                }}
-              />
-            ))}
+                  }}
+                />
+              ),
+            )}
           </div>
         )}
         {convo.typing && (
-          <p className="mt-2 text-sm text-ink-3" aria-hidden>
-            {claim.other.name} is typing…
-          </p>
+          <div className="animate-rise mt-3 flex w-fit items-center gap-1 rounded-2xl rounded-bl-md border border-line bg-surface px-3.5 py-3" aria-hidden>
+            {[0, 1, 2].map((d) => (
+              <span key={d} className="size-1.5 animate-bounce rounded-full bg-ink-3" style={{ animationDelay: `${d * 120}ms` }} />
+            ))}
+          </div>
         )}
       </div>
 
       {/* Handover / returned bar */}
       {claim.status === "approved" && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface px-3 py-2">
-          <Button size="sm" variant="outline" onClick={() => setHandoverOpen(true)} data-testid="open-handover">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface px-3 py-2.5">
+          <Button size="sm" variant="outline" onClick={() => setHandoverOpen(true)} icon={<MapPin className="size-4" aria-hidden />} data-testid="open-handover">
             {claim.handover ? "Change meeting plan" : "Propose meeting point"}
           </Button>
           {(isFinder ? claim.finderReturned : claim.ownerReturned) ? (
-            <span className="text-sm text-ink-2" data-testid="waiting-returned">
+            <span className="flex items-center gap-1.5 text-sm text-ink-2" data-testid="waiting-returned">
+              <span className="size-2 animate-pulse rounded-full bg-signal-deep" aria-hidden />
               Waiting for {claim.other.name} to confirm the handover
             </span>
           ) : (
@@ -290,7 +307,7 @@ function DecisionButtons({ busy, onDecide }: { busy: string | null; onDecide: (a
   }
   return (
     <div className="mt-3 flex gap-2">
-      <Button variant="ink" loading={busy === "approve"} onClick={() => void onDecide(true)} icon={<ShieldCheck className="size-4" aria-hidden />} data-testid="approve-claim">
+      <Button variant="signal" loading={busy === "approve"} onClick={() => void onDecide(true)} icon={<ShieldCheck className="size-4" aria-hidden />} data-testid="approve-claim">
         Approve, it&apos;s theirs
       </Button>
       <Button variant="outline" onClick={() => setRejecting(true)} data-testid="reject-claim">
@@ -361,23 +378,23 @@ function ReturnedBar({ claim, onThanked }: { claim: ClaimView; onThanked: () => 
   const [error, setError] = useState<string | null>(null);
   if (claim.thankYou) {
     return (
-      <div className="border-t border-line bg-signal-soft px-4 py-3 text-[15px]" data-testid="thank-you">
-        <Heart className="mr-1.5 inline size-4" aria-hidden />
+      <div className="border-t border-line bg-go-soft px-4 py-3 text-[15px]" data-testid="thank-you">
+        <Heart className="mr-1.5 inline size-4 text-go" aria-hidden />
         {claim.role === "finder" ? `${claim.other.name} wrote: ` : "You wrote: "}&ldquo;{claim.thankYou}&rdquo;
       </div>
     );
   }
   if (claim.role === "finder") {
     return (
-      <div className="border-t border-line bg-signal-soft px-4 py-3 text-[15px]" data-testid="returned-done">
-        <CheckCircle2 className="mr-1.5 inline size-4" aria-hidden />
+      <div className="border-t border-line bg-go-soft px-4 py-3 text-[15px]" data-testid="returned-done">
+        <CheckCircle2 className="mr-1.5 inline size-4 text-go" aria-hidden />
         Returned. You earned karma for handing it in. Thank you.
       </div>
     );
   }
   return (
-    <div className="border-t border-line bg-signal-soft px-3 py-3" data-testid="returned-done">
-      <p className="mb-2 text-[15px] font-semibold">It&apos;s back with you. Say thanks to {claim.other.name}?</p>
+    <div className="border-t border-line bg-go-soft px-3 py-3" data-testid="returned-done">
+      <p className="mb-2 font-display text-[15px] font-bold">It&apos;s back with you. Say thanks to {claim.other.name}?</p>
       {error && <p className="mb-2 text-sm text-alert">{error}</p>}
       <div className="flex gap-2">
         <Input aria-label="Thank-you note" placeholder="Thank you so much for handing it in!" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} data-testid="thanks-input" />

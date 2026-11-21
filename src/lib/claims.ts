@@ -9,6 +9,8 @@ import { notify } from "@/lib/notify";
 import { rateLimit } from "@/lib/ratelimit";
 import { MSG, type ClaimCardContent, type ClaimResultContent, type HandoverCardContent } from "@/lib/nexconn/messages";
 import { sendDirectMessage, sendGroupMessage, setDirectMessageMetadata } from "@/lib/nexconn/server";
+import { ensureRegistered, nexconnUserColumns } from "@/lib/nexconn/users";
+import { ensureDeskGroup } from "@/lib/desks";
 export { answerLooksRight } from "@/lib/text-match";
 
 export const KARMA_PER_RETURN = 10;
@@ -19,13 +21,12 @@ interface Party {
   nexconnId: string;
 }
 
+/** Load a participant, registering them with Nexconn first if their token predates the current App Key. */
 async function party(id: string): Promise<Party> {
-  const [u] = await db()
-    .select({ id: schema.users.id, name: schema.users.name, nexconnId: schema.users.nexconnId })
-    .from(schema.users)
-    .where(eq(schema.users.id, id));
+  const [u] = await db().select(nexconnUserColumns).from(schema.users).where(eq(schema.users.id, id));
   if (!u) throw notFound("User not found.");
-  return u;
+  await ensureRegistered([u]);
+  return { id: u.id, name: u.name, nexconnId: u.nexconnId };
 }
 
 export async function getClaim(id: string): Promise<Claim | null> {
@@ -135,9 +136,9 @@ export async function createClaim(
 async function deskNotice(item: Item, title: string, body: string, href: string) {
   const [desk] = await db().select().from(schema.desks).where(eq(schema.desks.id, item.deskId!));
   if (!desk) return;
-  await sendGroupMessage(desk.nexconnGroupId, MSG.DESK, { deskId: desk.id, title, body, href }, title).catch((err) =>
-    console.error("[claims] desk notice failed", err),
-  );
+  await ensureDeskGroup(desk)
+    .then(() => sendGroupMessage(desk.nexconnGroupId, MSG.DESK, { deskId: desk.id, title, body, href }, title))
+    .catch((err) => console.error("[claims] desk notice failed", err));
 }
 
 async function setCardStatus(claim: Claim, operator: Party, other: Party, status: string) {

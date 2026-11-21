@@ -13,7 +13,8 @@ import { ItemsMap } from "@/components/map";
 import { ItemTag, CategoryIcon } from "@/components/item-tag";
 import { ItemGallery } from "@/components/item-gallery";
 import { OwnerActions, RefreshMatches, SafetyMenu } from "@/components/item-actions";
-import { Avatar, Banner, EmptyState, KindMark, LinkButton, StatusPill, cx } from "@/components/ui";
+import { Avatar, Banner, EmptyState, KindMark, LinkButton, StatusPill } from "@/components/ui";
+import { cx } from "@/lib/cx";
 import { CopyLink } from "@/components/copy-link";
 
 async function load(id: string) {

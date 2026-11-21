@@ -320,12 +320,12 @@ dialog[open]::backdrop {
   animation: sway 700ms var(--ease-out-soft);
 }
 
-/* Scroll-linked pieces read --p (0..1) set by <ScrollProgress>. */
-.route-fill-x {
+/* Scroll-linked pieces read --p (0..1) set by <ScrollProgress> (which pins it to 1 for reduced motion). */
+@utility route-fill-x {
   transform-origin: left center;
   transform: scaleX(var(--p, 0));
 }
-.route-fill-y {
+@utility route-fill-y {
   transform-origin: center top;
   transform: scaleY(var(--p, 0));
 }
@@ -371,10 +371,6 @@ dialog[open]::backdrop {
   }
   [data-reveal] {
     opacity: 1;
-    transform: none;
-  }
-  .route-fill-x,
-  .route-fill-y {
     transform: none;
   }
 }

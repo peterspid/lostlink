@@ -49,6 +49,8 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   nexconnId: text("nexconn_id").notNull().unique(),
   nexconnToken: text("nexconn_token"),
+  /** App Key the token was issued under; a different key means the user must be registered again. */
+  nexconnAppKey: text("nexconn_app_key"),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),

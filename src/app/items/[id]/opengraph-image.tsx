@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { getItem } from "@/lib/items";
 import { categoryLabel } from "@/lib/categories";
 import { timeAgo } from "@/lib/time";
-import { displayFont, INK, PAPER, SIGNAL } from "@/lib/poster";
+import { BrandMark, displayFont, INK, MUTED, PAPER, SIGNAL } from "@/lib/poster";
 
 export const alt = "LostLink item";
 export const size = { width: 1200, height: 630 };
@@ -22,35 +22,35 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
             <div
               style={{
                 display: "flex",
-                padding: "10px 22px",
+                padding: "10px 24px 10px 30px",
                 fontSize: 36,
                 fontWeight: 800,
                 borderRadius: 10,
-                background: found ? SIGNAL : "transparent",
-                border: `4px solid ${found ? SIGNAL : INK}`,
+                background: found ? SIGNAL : INK,
+                color: found ? INK : PAPER,
               }}
             >
               {visible ? (found ? "Found" : "Lost") : "LostLink"}
             </div>
-            {visible && <div style={{ marginLeft: 24, fontSize: 30, color: "#4A5562", letterSpacing: 3 }}>{`Ref ${item.code}`}</div>}
+            {visible && <div style={{ marginLeft: 24, fontSize: 30, color: MUTED, letterSpacing: 4, fontWeight: 800 }}>{`Ref ${item.code}`}</div>}
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 76, fontWeight: 800, lineHeight: 1.02, letterSpacing: -1.5 }}>{visible ? item.title.slice(0, 60) : "Lost & found"}</div>
+            <div style={{ fontSize: 78, fontWeight: 800, lineHeight: 1.0, letterSpacing: -2 }}>{visible ? item.title.slice(0, 60) : "Lost & found"}</div>
             {visible && (
-              <div style={{ fontSize: 32, marginTop: 24, color: "#4A5562" }}>
+              <div style={{ fontSize: 32, marginTop: 24, color: MUTED }}>
                 {`${categoryLabel(item.category)}. ${found ? "Found" : "Lost"} ${timeAgo(item.occurredFrom)}${item.placeLabel ? ` near ${item.placeLabel.slice(0, 40)}` : ""}`}
               </div>
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 8, background: SIGNAL, border: `3px solid ${INK}`, marginRight: 16 }} />
-            <div style={{ fontSize: 34, fontWeight: 800 }}>LostLink</div>
-            <div style={{ fontSize: 28, marginLeft: 20, color: "#4A5562" }}>{found ? "Is it yours? Prove it and arrange the handover." : "Seen it? Let the owner know."}</div>
+            <BrandMark size={56} />
+            <div style={{ fontSize: 36, fontWeight: 800, marginLeft: 12 }}>LostLink</div>
+            <div style={{ fontSize: 28, marginLeft: 22, color: MUTED }}>{found ? "Is it yours? Prove it and arrange the handover." : "Seen it? Let the owner know."}</div>
           </div>
         </div>
         {visible && item.photos[0] && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.photos[0]} alt="" width={420} height={630} style={{ objectFit: "cover", borderLeft: `6px solid ${INK}` }} />
+          <img src={item.photos[0]} alt="" width={420} height={630} style={{ objectFit: "cover", borderLeft: `10px solid ${found ? SIGNAL : INK}` }} />
         )}
       </div>
     ),

@@ -121,23 +121,27 @@ p {
   background-position: center;
 }
 
-/* Half-circle notches where a ticket tears. Place on a relatively positioned ticket. */
+/* Half-circle notches where a ticket tears: sit on a horizontal perforation inside a bordered
+   card (no overflow clipping), covering the card border and drawing the curve instead. */
 .ticket-notch::before,
 .ticket-notch::after {
   content: "";
   position: absolute;
-  width: 18px;
-  height: 18px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
   border-radius: 999px;
   background: var(--notch-bg, var(--color-paper));
-  left: var(--notch-x, 50%);
-  transform: translateX(-50%);
+  border: 1px solid var(--color-line-strong);
 }
 .ticket-notch::before {
-  top: -9px;
+  left: -11px;
+  clip-path: inset(0 0 0 50%);
 }
 .ticket-notch::after {
-  bottom: -9px;
+  right: -11px;
+  clip-path: inset(0 50% 0 0);
 }
 
 /* Kind tags are cut like luggage tags: a pointed left edge with a punched hole. */

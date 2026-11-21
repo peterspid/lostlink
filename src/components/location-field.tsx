@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Crosshair, Search } from "lucide-react";
 import { PickerMap } from "@/components/map";
 import { Button, Input, cx } from "@/components/ui";
@@ -34,12 +34,22 @@ export function LocationField({
   const [results, setResults] = useState<PlaceResult[] | null>(null);
   const [searching, setSearching] = useState(false);
 
+  // The latest value, so a slow reverse-geocode never overwrites a name typed in the meantime.
+  const latest = useRef(value);
+  useEffect(() => {
+    latest.current = value;
+  });
+
   async function setPoint(lat: number, lng: number, label?: string) {
     const current = value?.label ?? "";
-    onChange({ lat, lng, label: label ?? current });
+    const next = { lat, lng, label: label ?? current };
+    latest.current = next;
+    onChange(next);
     if (autoLabel && label === undefined) {
       const name = await reverseGeocode(lat, lng);
-      if (name) onChange({ lat, lng, label: name });
+      const now = latest.current;
+      const untouched = now && now.lat === lat && now.lng === lng && now.label === next.label;
+      if (name && untouched) onChange({ lat, lng, label: name });
     }
   }
 

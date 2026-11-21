@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/*
+ * LostLink design tokens. Four colours only:
+ *   paper  #F3F4F0  background
+ *   ink    #1C2733  text, lost items, structure
+ *   signal #F5B800  found items, primary action (wayfinding yellow, always with ink text)
+ *   alert  #B3261E  errors and destructive actions
+ * Everything else is a tint of these.
+ */
+@theme {
+  --color-paper: #f3f4f0;
+  --color-surface: #ffffff;
+  --color-ink: #1c2733;
+  --color-ink-2: color-mix(in oklab, #1c2733 74%, #f3f4f0);
+  --color-ink-3: color-mix(in oklab, #1c2733 56%, #f3f4f0);
+  --color-line: color-mix(in oklab, #1c2733 13%, #ffffff);
+  --color-line-strong: color-mix(in oklab, #1c2733 26%, #ffffff);
+  --color-wash: color-mix(in oklab, #1c2733 5%, #f3f4f0);
+  --color-signal: #f5b800;
+  --color-signal-deep: color-mix(in oklab, #f5b800 82%, #1c2733);
+  --color-signal-soft: color-mix(in oklab, #f5b800 18%, #ffffff);
+  --color-alert: #b3261e;
+  --color-alert-soft: color-mix(in oklab, #b3261e 9%, #ffffff);
+
+  --font-display: var(--font-overpass), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-tag: 6px;
+  --radius-sheet: 18px;
+}
+
+:root {
+  color-scheme: light;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  font-feature-settings: "kern";
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Reference codes read like a claim ticket: tabular, spaced, never monospace. */
+.ref-code {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.on-ink :focus-visible {
+  outline-color: var(--color-signal);
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Leaflet: keep tiles calm and controls in the house style. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-wash);
+  border-radius: inherit;
+}
+.leaflet-control-zoom a {
+  color: var(--color-ink) !important;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+.llk-pin {
+  background: transparent;
+  border: 0;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-sheet {
+  animation: sheet-up 180ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-toast {
+  animation: toast-in 160ms ease-out;
+}

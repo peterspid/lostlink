@@ -5,11 +5,12 @@ import { Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui";
 
 /** Share via the native share sheet when available, otherwise copy the link. */
-export function CopyLink({ path, label = "Share this post" }: { path: string; label?: string }) {
+export function CopyLink({ path, label = "Share this post", className }: { path: string; label?: string; className?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <Button
       variant="outline"
+      className={className}
       icon={copied ? <Check className="size-4" aria-hidden /> : <Share2 className="size-4" aria-hidden />}
       onClick={async () => {
         const url = `${window.location.origin}${path}`;

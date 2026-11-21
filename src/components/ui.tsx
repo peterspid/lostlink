@@ -122,8 +122,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 const chevron =
   "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310243a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")] bg-[length:16px] bg-[position:right_0.85rem_center] bg-no-repeat";
 
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select({ className, ...rest }, ref) {
-  return <select ref={ref} className={cx(inputBase, chevron, "h-12 cursor-pointer appearance-none pr-10", className)} {...rest} />;
+/** `compact` is the pill-shaped filter size used in toolbars. */
+export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { compact?: boolean }>(function Select({ className, compact, ...rest }, ref) {
+  const base = compact ? inputBase.replace("w-full rounded-xl", "w-auto rounded-full") : inputBase;
+  return <select ref={ref} className={cx(base, chevron, compact ? "h-9 pr-9" : "h-12 pr-10", "cursor-pointer appearance-none", className)} {...rest} />;
 });
 
 export function Banner({

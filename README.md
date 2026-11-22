@@ -9,7 +9,8 @@ The lost-property office in your pocket: post it, match it, prove it, and hand i
 
 <p align="center">
   <a href="https://lostlink-bay.vercel.app"><strong>Live app → lostlink-bay.vercel.app</strong></a><br/>
-  Mobile-first, installable as an app (PWA). Built on Nexconn real-time chat.
+  Mobile-first, installable as an app (PWA). Built on Nexconn real-time chat.<br/>
+  <a href="docs/LostLink-demo.mp4">Demo video (3 min)</a> · <a href="docs/LostLink-Nexconn-Integration.pdf">Nexconn integration guide (PDF)</a>
 </p>
 
 ---
@@ -194,7 +195,7 @@ src/components/     app shell, chat (provider, room, cards, composer), landing, 
 src/lib/            db schema, Nexconn server client and user registration, claims state machine,
                     matching and scoring, Gemini, search, desks, notifications, posters
 drizzle/            SQL migrations          e2e/   Playwright two-user tests
-tests/              Vitest unit tests       docs/  screenshots and the Nexconn integration PDF
+tests/              Vitest unit tests       docs/  screenshots, demo video, Nexconn integration PDF
 ```
 
 See [AGENTS.md](AGENTS.md) for the architecture, data model, conventions and known limitations.

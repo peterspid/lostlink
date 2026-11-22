@@ -14,9 +14,12 @@ export function Composer({
   onImage,
   onLocation,
   onTyping,
+  connecting,
   locationLabel = "Propose a meeting point",
 }: {
   disabled?: boolean;
+  /** Chat isn't connected yet: keep what's typed, but don't let it be sent into the void. */
+  connecting?: boolean;
   disabledReason?: string;
   onSend: (text: string) => void;
   onImage?: (file: File) => void;
@@ -37,7 +40,7 @@ export function Composer({
 
   function send() {
     const t = text.trim();
-    if (!t || disabled) return;
+    if (!t || disabled || connecting) return;
     onSend(t.slice(0, 2000));
     setText("");
     requestAnimationFrame(grow);
@@ -53,13 +56,13 @@ export function Composer({
     );
   }
 
-  const ready = !!text.trim();
+  const ready = !!text.trim() && !connecting;
   return (
     <div className="border-t border-line bg-surface/95 px-2 py-2 backdrop-blur" style={{ paddingBottom: "calc(0.5rem + var(--safe-bottom))" }}>
       <div className="flex items-end gap-1">
         {onImage && (
           <>
-            <button type="button" className={iconButton} aria-label="Send a photo" onClick={() => fileRef.current?.click()}>
+            <button type="button" className={cx(iconButton, "disabled:opacity-40")} aria-label="Send a photo" disabled={connecting} onClick={() => fileRef.current?.click()}>
               <ImagePlus className="size-5" />
             </button>
             <input
@@ -79,7 +82,7 @@ export function Composer({
           </>
         )}
         {onLocation && (
-          <button type="button" className={iconButton} aria-label={locationLabel} onClick={onLocation} data-testid="propose-handover">
+          <button type="button" className={cx(iconButton, "disabled:opacity-40")} aria-label={locationLabel} disabled={connecting} onClick={onLocation} data-testid="propose-handover">
             <MapPin className="size-5" />
           </button>
         )}
@@ -91,7 +94,7 @@ export function Composer({
           ref={areaRef}
           rows={1}
           value={text}
-          placeholder="Write a message"
+          placeholder={connecting ? "Connecting to chat…" : "Write a message"}
           enterKeyHint="send"
           onChange={(e) => {
             setText(e.target.value);

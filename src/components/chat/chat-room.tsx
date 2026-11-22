@@ -276,6 +276,7 @@ export function ChatRoom({ initial, justClaimed }: { initial: ClaimView; justCla
         onImage={(f) => void convo.sendImage(f)}
         onLocation={claim.status === "approved" ? () => setHandoverOpen(true) : undefined}
         onTyping={convo.notifyTyping}
+        connecting={!convo.ready}
       />
 
       <HandoverSheet

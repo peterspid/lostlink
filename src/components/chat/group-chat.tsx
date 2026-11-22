@@ -68,7 +68,7 @@ export function GroupChat({ groupId, members }: { groupId: string; members: { ne
           </div>
         )}
       </div>
-      <Composer onSend={(t) => void convo.sendText(t)} onImage={(f) => void convo.sendImage(f)} />
+      <Composer onSend={(t) => void convo.sendText(t)} onImage={(f) => void convo.sendImage(f)} connecting={!convo.ready} />
     </div>
   );
 }

@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { ArrowLeft, Camera, EyeOff, ImagePlus, Lock, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, EyeOff, ImagePlus, Lock, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { api, ApiError } from "@/lib/client-api";
 import { resizeImage } from "@/lib/image-resize";
 import { LocationField, type LocationValue } from "@/components/location-field";
-import { Banner, Button, Field, Input, Textarea, cx } from "@/components/ui";
+import { CategoryIcon } from "@/components/item-tag";
+import { Banner, Button, Field, Input, KindMark, Textarea, cx } from "@/components/ui";
 
 type Kind = "lost" | "found";
 
@@ -202,28 +203,41 @@ export function ReportForm({
   }
 
   if (!kind) {
+    const choices = [
+      { k: "lost" as const, label: "I lost something", sub: "We match it against found items and alert you.", icon: Search, plate: "bg-paper text-ink" },
+      { k: "found" as const, label: "I found something", sub: "Post it and we help you find the owner.", icon: Plus, plate: "bg-signal text-ink" },
+    ];
     return (
-      <div className="mx-auto max-w-xl px-4 py-8">
-        <h1 className="text-3xl font-extrabold">What happened?</h1>
-        <div className="mt-6 grid gap-3">
-          <button onClick={() => setKind("lost")} className="flex items-center gap-4 rounded-xl border-2 border-ink bg-surface p-5 text-left hover:bg-wash">
-            <span className="flex size-12 items-center justify-center rounded-lg border-2 border-ink">
-              <Search className="size-6" aria-hidden />
-            </span>
-            <span>
-              <span className="block font-display text-xl font-extrabold">I lost something</span>
-              <span className="text-ink-2">We&apos;ll match it against found items and alert you.</span>
-            </span>
-          </button>
-          <button onClick={() => { setKind("found"); setExactTime(true); setFrom(toLocalInput(new Date())); }} className="flex items-center gap-4 rounded-xl border-2 border-signal-deep bg-signal p-5 text-left hover:bg-signal-deep">
-            <span className="flex size-12 items-center justify-center rounded-lg bg-ink text-signal">
-              <Plus className="size-6" aria-hidden />
-            </span>
-            <span>
-              <span className="block font-display text-xl font-extrabold">I found something</span>
-              <span className="text-ink/80">Post it and we&apos;ll help you find the owner.</span>
-            </span>
-          </button>
+      <div className="mx-auto max-w-xl px-4 py-10">
+        <h1 className="text-[38px] font-black leading-[1.02]">What happened?</h1>
+        <p className="mt-2 text-[17px] text-ink-2">Takes under a minute. You can edit everything afterwards.</p>
+        <div className="on-ink mt-7 overflow-hidden rounded-[28px] bg-ink text-paper shadow-[var(--shadow-float)]">
+          {choices.map((c, i) => {
+            const Icon = c.icon;
+            return (
+              <button
+                key={c.k}
+                type="button"
+                onClick={() => {
+                  setKind(c.k);
+                  if (c.k === "found") {
+                    setExactTime(true);
+                    setFrom(toLocalInput(new Date()));
+                  }
+                }}
+                className={cx("group flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-white/[0.06]", i > 0 && "border-t border-white/10")}
+              >
+                <span className={cx("flex size-14 shrink-0 items-center justify-center rounded-2xl", c.plate)}>
+                  <Icon className="size-7" strokeWidth={2.6} aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display text-[22px] font-extrabold leading-tight">{c.label}</span>
+                  <span className="text-[15px] text-paper/70">{c.sub}</span>
+                </span>
+                <ArrowRight className="size-6 shrink-0 text-signal transition-transform group-hover:translate-x-1" aria-hidden />
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -243,22 +257,30 @@ export function ReportForm({
             <X className="size-4" aria-hidden /> Cancel
           </Link>
         )}
-        <ol className="ml-auto flex items-center gap-1.5" aria-label="Progress">
-          {STEPS.map((s, i) => (
-            <li key={s} className={cx("h-1.5 w-8 rounded-full", i <= step ? "bg-ink" : "bg-line-strong")} aria-current={i === step ? "step" : undefined}>
-              <span className="sr-only">{`Step ${i + 1} of ${STEPS.length}: ${s}`}</span>
-            </li>
-          ))}
-        </ol>
+        <span className="ml-auto text-sm font-semibold text-ink-3">
+          Step {step + 1} of {STEPS.length}
+        </span>
       </div>
 
-      <div className="mt-5 flex items-center gap-2.5">
-        <span className={cx("rounded-md px-2 py-0.5 font-display text-sm font-extrabold", isFound ? "bg-signal" : "border-2 border-ink")}>
-          {isFound ? "Found" : "Lost"}
-        </span>
-        {desk && <span className="text-sm text-ink-2">Logging for {desk.name}</span>}
+      <ol className="mt-3 grid grid-cols-3 gap-2" aria-label="Progress">
+        {STEPS.map((s, i) => (
+          <li key={s} aria-current={i === step ? "step" : undefined}>
+            <span className="block h-1.5 overflow-hidden rounded-full bg-line-strong">
+              <span className={cx("block h-full origin-left rounded-full bg-ink transition-transform duration-500 ease-[var(--ease-out-soft)]", i <= step ? "scale-x-100" : "scale-x-0")} />
+            </span>
+            <span className={cx("mt-1.5 flex items-center gap-1 font-display text-[12px] font-bold", i === step ? "text-ink" : "text-ink-3")}>
+              {i < step && <Check className="size-3 text-go" strokeWidth={3} aria-hidden />}
+              {s}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-6 flex items-center gap-2.5">
+        <KindMark kind={isFound ? "found" : "lost"} />
+        {desk && <span className="text-sm font-semibold text-ink-2">Logging for {desk.name}</span>}
       </div>
-      <h1 className="mt-2 text-[28px] font-extrabold leading-tight">
+      <h1 key={step} className="animate-rise mt-2 text-[30px] font-black leading-[1.05] md:text-[34px]">
         {step === 0 && (isFound ? "Add a photo of what you found" : "Add a photo, if you have one")}
         {step === 1 && "Describe it"}
         {step === 2 && (isFound ? "Where and when did you find it?" : "Where and when did you lose it?")}
@@ -279,15 +301,16 @@ export function ReportForm({
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {photos.map((p) => (
-              <div key={p.key} className="relative aspect-square overflow-hidden rounded-lg border border-line-strong bg-wash">
+              <div key={p.key} className="animate-rise relative aspect-square overflow-hidden rounded-2xl border border-line-strong bg-wash">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.preview} alt="" className="size-full object-cover" />
-                {!p.url && !p.error && <div className="absolute inset-x-0 bottom-0 bg-ink/80 px-2 py-1 text-xs text-paper">Uploading…</div>}
-                {p.error && <div className="absolute inset-x-0 bottom-0 bg-alert px-2 py-1 text-xs text-white">{p.error}</div>}
+                {((!p.url && !p.error) || (aiState === "reading" && p.key === photos[0]?.key)) && <span className="scan-line" aria-hidden />}
+                {!p.url && !p.error && <div className="absolute inset-x-0 bottom-0 bg-ink/80 px-2 py-1.5 text-xs font-semibold text-paper">Uploading…</div>}
+                {p.error && <div className="absolute inset-x-0 bottom-0 bg-alert px-2 py-1.5 text-xs font-semibold text-white">{p.error}</div>}
                 <button
                   type="button"
                   onClick={() => removePhoto(p.key)}
-                  className="absolute right-1.5 top-1.5 flex size-8 items-center justify-center rounded-md bg-surface/95 text-ink"
+                  className="absolute right-1.5 top-1.5 flex size-9 items-center justify-center rounded-xl bg-surface/95 text-ink shadow-[var(--shadow-lift)] hover:text-alert"
                   aria-label="Remove photo"
                 >
                   <Trash2 className="size-4" />
@@ -299,17 +322,21 @@ export function ReportForm({
                 <button
                   type="button"
                   onClick={() => cameraInput.current?.click()}
-                  className="flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line-strong bg-surface text-sm font-semibold hover:border-ink"
+                  className="flex aspect-square flex-col items-center justify-center gap-2.5 rounded-2xl bg-ink font-display text-[15px] font-bold text-paper transition-transform hover:bg-night active:scale-[0.98]"
                 >
-                  <Camera className="size-6" aria-hidden />
+                  <span className="flex size-12 items-center justify-center rounded-xl bg-signal text-ink">
+                    <Camera className="size-6" aria-hidden />
+                  </span>
                   Take photo
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInput.current?.click()}
-                  className="flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line-strong bg-surface text-sm font-semibold hover:border-ink"
+                  className="flex aspect-square flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed border-line-strong bg-surface font-display text-[15px] font-bold transition-colors hover:border-ink active:scale-[0.98]"
                 >
-                  <ImagePlus className="size-6" aria-hidden />
+                  <span className="flex size-12 items-center justify-center rounded-xl bg-wash">
+                    <ImagePlus className="size-6" aria-hidden />
+                  </span>
                   From gallery
                 </button>
               </>
@@ -334,10 +361,11 @@ export function ReportForm({
                   aria-checked={category === c.id}
                   onClick={() => { touch("category"); setCategory(c.id); }}
                   className={cx(
-                    "h-10 rounded-full border px-3.5 text-[15px] font-semibold",
+                    "inline-flex h-10 items-center gap-1.5 rounded-full border pl-3 pr-3.5 text-[15px] font-semibold transition-colors",
                     category === c.id ? "border-ink bg-ink text-paper" : "border-line-strong bg-surface text-ink hover:border-ink",
                   )}
                 >
+                  <CategoryIcon category={c.id} className={cx("size-4", category === c.id && "text-signal")} />
                   {c.label}
                 </button>
               ))}
@@ -394,18 +422,21 @@ export function ReportForm({
           </Field>
 
           {isFound && (
-            <div className="rounded-xl border-2 border-ink bg-surface p-4">
-              <div className="flex items-center gap-2">
-                <Lock className="size-5" aria-hidden />
+            <div className="overflow-hidden rounded-3xl border border-ink bg-surface">
+              <div className="on-ink flex items-center gap-2.5 bg-ink px-4 py-3 text-paper">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-signal text-ink">
+                  <Lock className="size-4" aria-hidden />
+                </span>
                 <h2 className="font-display text-lg font-extrabold">Questions only the owner can answer</h2>
               </div>
-              <p className="mt-1 text-[15px] text-ink-2">
+              <div className="p-4">
+              <p className="text-[15px] text-ink-2">
                 Anyone who claims this item must answer these. Only you see the answers. Think: what&apos;s inside, a sticker, the lock screen, a name tag.
               </p>
               {errors.questions && <p className="mt-2 text-sm text-alert" role="alert">{errors.questions}</p>}
               <div className="mt-3 flex flex-col gap-3">
                 {questions.map((q, i) => (
-                  <div key={i} className="rounded-lg border border-line-strong p-3">
+                  <div key={i} className="animate-rise rounded-2xl border border-line-strong bg-paper/60 p-3">
                     <div className="flex items-start gap-2">
                       <div className="flex flex-1 flex-col gap-2">
                         <Input aria-label={`Question ${i + 1}`} placeholder="Question, e.g. What sticker is on the back?" value={q.question} maxLength={160} onChange={(e) => { touch("questions"); setQuestions(questions.map((x, j) => (j === i ? { ...x, question: e.target.value } : x))); }} />
@@ -423,9 +454,10 @@ export function ReportForm({
                   </Button>
                 )}
               </div>
-              <p className="mt-3 flex items-center gap-1.5 text-sm text-ink-3">
-                <EyeOff className="size-4" aria-hidden /> Brand, material and marks are hidden on the public page. The exact spot is blurred to about 300 m.
+              <p className="mt-3 flex items-start gap-1.5 text-sm text-ink-3">
+                <EyeOff className="mt-0.5 size-4 shrink-0" aria-hidden /> Brand, material and marks are hidden on the public page. The exact spot is blurred to about 300 m.
               </p>
+              </div>
             </div>
           )}
         </section>
@@ -437,7 +469,7 @@ export function ReportForm({
             <LocationField value={location} onChange={setLocation} />
           </Field>
           <Field label="When" error={errors.when}>
-            <div className="flex gap-2" role="radiogroup" aria-label="Time precision">
+            <div className="flex w-fit gap-1 rounded-full border border-line-strong bg-surface p-1" role="radiogroup" aria-label="Time precision">
               {[
                 { v: true, l: "At a time" },
                 { v: false, l: "Sometime between" },
@@ -448,7 +480,7 @@ export function ReportForm({
                   role="radio"
                   aria-checked={exactTime === o.v}
                   onClick={() => setExactTime(o.v)}
-                  className={cx("h-10 rounded-full border px-3.5 text-[15px] font-semibold", exactTime === o.v ? "border-ink bg-ink text-paper" : "border-line-strong bg-surface")}
+                  className={cx("h-9 rounded-full px-4 text-[15px] font-semibold transition-colors", exactTime === o.v ? "bg-ink text-paper" : "text-ink-2 hover:text-ink")}
                 >
                   {o.l}
                 </button>
@@ -462,7 +494,7 @@ export function ReportForm({
         </section>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-line bg-surface" style={{ paddingBottom: "var(--safe-bottom)" }}>
+      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-line bg-surface/95 backdrop-blur-md" style={{ paddingBottom: "var(--safe-bottom)" }}>
         <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3">
           {step === 0 && photos.length === 0 && (
             <Button variant="ghost" onClick={() => setStep(1)} className="mr-auto">
@@ -481,6 +513,7 @@ export function ReportForm({
               }}
             >
               Continue
+              <ArrowRight className="size-5" aria-hidden />
             </Button>
           ) : (
             <Button size="lg" variant={isFound ? "signal" : "ink"} className="ml-auto min-w-40" loading={submitting} onClick={submit}>
@@ -497,8 +530,10 @@ function AiStatus({ state, compact }: { state: "idle" | "reading" | "done" | "bu
   if (state === "idle") return null;
   if (state === "reading")
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-line-strong bg-surface p-3" role="status">
-        <Sparkles className="size-5 animate-pulse" aria-hidden />
+      <div className="animate-rise flex items-center gap-3 rounded-2xl border border-line-strong bg-surface p-3.5" role="status">
+        <span className="flex size-9 items-center justify-center rounded-xl bg-ink text-signal">
+          <Sparkles className="size-5 animate-pulse" aria-hidden />
+        </span>
         <span className="text-[15px]">Reading your photo to fill in the details…</span>
       </div>
     );
@@ -508,14 +543,18 @@ function AiStatus({ state, compact }: { state: "idle" | "reading" | "done" | "bu
         <Sparkles className="size-4" aria-hidden /> Filled in from your photo. Check and edit anything that&apos;s off.
       </p>
     ) : (
-      <div className="flex items-center gap-3 rounded-lg border border-ink bg-signal-soft p-3" role="status" data-testid="ai-filled">
-        <Sparkles className="size-5" aria-hidden />
+      <div className="animate-rise flex items-center gap-3 rounded-2xl border border-go/35 bg-go-soft p-3.5" role="status" data-testid="ai-filled">
+        <span className="flex size-9 items-center justify-center rounded-xl bg-go text-white">
+          <Sparkles className="size-5" aria-hidden />
+        </span>
         <span className="text-[15px]">Details filled in from your photo. You can edit them next.</span>
       </div>
     );
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-line-strong bg-surface p-3" role="status">
-      <Sparkles className="size-5 text-ink-3" aria-hidden />
+    <div className="animate-rise flex items-center gap-3 rounded-2xl border border-line-strong bg-surface p-3.5" role="status">
+      <span className="flex size-9 items-center justify-center rounded-xl bg-wash text-ink-3">
+        <Sparkles className="size-5" aria-hidden />
+      </span>
       <span className="text-[15px] text-ink-2">Photo reading is busy right now. Fill in the details yourself; matching still works.</span>
     </div>
   );

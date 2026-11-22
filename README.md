@@ -1,71 +1,154 @@
-# LostLink
+<p align="center">
+  <img src="src/app/icon.svg" width="88" alt="LostLink logo: a yellow luggage tag on a navy square" />
+</p>
 
-**Lost & found that actually reunites people with their things.**
+<h1 align="center">LostLink</h1>
 
-Post what you lost or found in under a minute. LostLink reads your photo with AI, matches lost and
-found posts by description, place and time, makes the claimant prove ownership with the finder's
-private questions, and opens a private chat to agree a meeting point. Nobody shares a phone number.
+<p align="center"><strong>Lost it? Found it? Start here.</strong><br/>
+The lost-property office in your pocket: post it, match it, prove it, and hand it back in a private chat, without swapping phone numbers.</p>
 
-**Live:** https://lostlink-bay.vercel.app (mobile-first, installable as a PWA)
+<p align="center">
+  <a href="https://lostlink-bay.vercel.app"><strong>Live app → lostlink-bay.vercel.app</strong></a><br/>
+  Mobile-first, installable as an app (PWA). Built on Nexconn real-time chat.<br/>
+  <a href="docs/LostLink-demo.mp4">Demo video (3 min)</a> · <a href="docs/LostLink-Nexconn-Integration.pdf">Nexconn integration guide (PDF)</a>
+</p>
+
+---
+
+## What LostLink is
+
+When you lose a wallet, keys or a phone, someone has often already found it. The hard part is
+finding each other, and proving it's really yours without handing your number to a stranger.
+
+LostLink fixes that in four steps:
+
+1. **Post** – snap a photo and drop a pin. AI reads the photo and fills in the category, colour,
+   brand and marks for you. Takes under a minute.
+2. **Match** – every new post is compared with what's been lost or found nearby, by description,
+   place and time. Both people get a live alert.
+3. **Prove it** – the finder keeps identifying details (what's inside, an engraving) private and
+   turns them into questions. The owner answers; the finder sees the answers next to their own and
+   approves.
+4. **Meet** – a private chat opens. They agree a busy public spot and a time on a map, meet, and
+   both tap **Returned**. The owner can say thanks; the finder earns karma.
+
+Venues (campuses, malls, stations, events) can run a **lost & found desk**: a public page, a
+printable QR poster, a shared inventory that matches itself, and a private staff chat.
 
 <p>
+  <img src="docs/screenshots/01-home.png" width="200" alt="Home: the lost property board" />
   <img src="docs/screenshots/03-report-ai-prefill.png" width="200" alt="Report form pre-filled from a photo" />
-  <img src="docs/screenshots/04-found-item-matches.png" width="200" alt="Found item with a live match notice" />
-  <img src="docs/screenshots/07-finder-checks-answers.png" width="200" alt="Finder checks the claimant's answers" />
-  <img src="docs/screenshots/09-handover-confirmed.png" width="200" alt="Meeting point and handover card" />
+  <img src="docs/screenshots/04-found-item-matches.png" width="200" alt="Found item with matches" />
+  <img src="docs/screenshots/07-finder-checks-answers.png" width="200" alt="Finder checks the owner's answers" />
 </p>
 <p>
-  <img src="docs/screenshots/01-home.png" width="200" alt="Home" />
-  <img src="docs/screenshots/02-browse-map.png" width="200" alt="Browse on a map" />
+  <img src="docs/screenshots/08-claim-approved.png" width="200" alt="Claim approved in the private chat" />
+  <img src="docs/screenshots/09-handover-confirmed.png" width="200" alt="Meeting point and handover card" />
   <img src="docs/screenshots/11-desk-manage.png" width="200" alt="Desk management" />
-  <img src="docs/screenshots/12-qr-poster.png" width="200" alt="Printable QR poster" />
+  <img src="docs/screenshots/13-staff-chat.png" width="200" alt="Desk staff group chat" />
 </p>
 
 ## Features
 
-- **Report in under a minute.** Photos are resized on the phone and uploaded to Vercel Blob.
-  Gemini vision fills in category, title, colour, brand, material and distinguishing marks; you edit.
-  Drop a pin or use your location; pick an exact time or a range.
-- **Private verification.** Finders turn identifying details into questions only the owner can
-  answer. The public page hides brand, material and marks and blurs the location to about 300 m.
-- **AI matching.** `gemini-embedding-2` (768 d) vectors in pgvector, filtered by category,
-  distance and time window, ranked with readable reasons: "Same brand: Apple, 400 m away, Found 2 h
-  after you lost it". Recomputed whenever a post is created or renewed.
-- **Live notifications.** Matches, alert hits, claims, decisions and handover updates arrive as
-  Nexconn system-channel messages (a live notice in the app) and in the notification centre.
-- **Claim → chat → handover.** "This is mine" sends a claim card into a private Nexconn direct
-  channel. The finder sees answers next to the expected ones and approves or declines; the card
-  updates live. They chat (text, photos, read receipts, typing), propose a meeting point (location
-  message) and time (handover card), and both confirm "Returned". The owner can leave a thank-you
-  note; the finder earns karma.
-- **Alerts.** "Tell me if a black wallet is found within 3 km of here", checked on every new found post.
-- **Lost & found desks** for campuses, malls, stations and events: public page, printable QR poster
-  (PNG and A4 PDF generated by the app), staff invite link, a Nexconn staff group chat with bot
-  notices, and an inventory that matches itself against lost reports.
-- **Browse** on a map or as a list with search and filters; shareable item pages with Open Graph
-  images; posts expire after 60 days with a renew prompt.
-- **Safety.** Block or report from any item, claim or chat. Blocking uses the Nexconn blocklist;
-  repeatedly reported posts are hidden automatically; repeated wrong claims are refused.
+| | |
+| --- | --- |
+| **Report in under a minute** | Photos are resized on the phone and stored in Vercel Blob. Gemini vision pre-fills category, title, colour, brand, material and marks; if the AI is busy the form simply stays manual. Pin or "use my location"; exact time or a range. |
+| **Private verification** | Found items hide brand, material and marks publicly, and the pin is blurred to about 300 m. Finders set questions only the owner can answer. Repeated wrong claims are refused. |
+| **AI matching with reasons** | `gemini-embedding-2` vectors (768 d) in pgvector, filtered by category, distance and time, ranked with readable reasons such as "Same brand: Apple, 400 m away, found 2 h after you lost it". |
+| **Live notifications** | Matches, alert hits, claims, decisions and handover updates arrive instantly as Nexconn system messages and wait in the in-app notification centre. |
+| **Claim → chat → handover** | A claim card lands in a private chat; its state (waiting → approved → returned) updates live on both phones. Text, photos, read receipts, typing, meeting point on a map, handover card, "Returned" on both sides, thank-you note, karma. |
+| **Alerts** | "Tell me if a black wallet is found within 3 km of here", checked on every new found post. |
+| **Desks** | Public desk page, QR poster (PNG and print-ready A4 PDF), staff invite link, staff group chat with bot notices, self-matching inventory. |
+| **Browse** | Map or list, search, category chips, lost/found, date and distance filters. Shareable item pages with Open Graph cards. Posts expire after 60 days with a renew prompt. |
+| **Safety** | Block or report from any chat, claim or post. Blocked people can't message you or claim your items; posts reported by three people are hidden automatically. |
+| **Production basics** | PWA with offline page, favicon set and maskable icons, `robots.txt`, `sitemap.xml`, error and loading boundaries, rate limits on every write, zod validation on every input. |
 
-## How this uses Nexconn
+## How Nexconn is integrated
+
+LostLink uses Nexconn for **everything that has to be real-time and private**: claim chats,
+live cards, notifications and staff rooms. The server talks to the **Platform Chat API** (signed,
+the App Secret never leaves the server); the browser uses the **Web Chat SDK** over WebSocket.
+Data centre: Singapore (`https://api.sg-light-api.com`).
+
+```mermaid
+flowchart LR
+  subgraph Phone["Phone browser (Next.js PWA)"]
+    UI[Pages and forms]
+    SDK[Nexconn Web Chat SDK]
+  end
+  subgraph Server["Next.js route handlers on Vercel (sin1)"]
+    API["/api/* (auth, zod, rate limits)"]
+    NC["lib/nexconn/server.ts<br/>signed Platform Chat API client"]
+  end
+  DB[(Neon Postgres + pgvector)]
+  NEX[(Nexconn<br/>Singapore DC)]
+  AI[Gemini vision + embeddings]
+  UI --> API
+  API --> DB
+  API --> AI
+  API --> NC --> NEX
+  SDK <-->|WebSocket: direct, group, system channels| NEX
+```
+
+### The claim flow, end to end
+
+The server is the source of truth (Postgres). After every decision it sends or updates a Nexconn
+message, so both phones change at the same moment.
+
+```mermaid
+sequenceDiagram
+  participant O as Owner (browser)
+  participant S as LostLink server
+  participant N as Nexconn
+  participant F as Finder (browser)
+  O->>S: POST /api/claims (answers)
+  S->>N: direct-channel/message/send LLK:ClaimCard, metadata {status: pending}
+  N-->>F: claim card appears in the private chat
+  S->>N: system-channel/message/send LLK:Notice ("Asha says it's theirs")
+  N-->>F: live toast + notification centre
+  F->>S: POST /api/claims/:id/decision (approve)
+  S->>N: message/metadata/set {status: approved}
+  N-->>O: card flips to "Approved" (onMessageMetadataUpdated)
+  N-->>F: card flips to "Approved"
+  S->>N: LLK:ClaimResult card + system notice
+  O->>N: text, photos, location (SDK), read receipts, typing
+  O->>S: POST /api/claims/:id/handover (place + time)
+  S->>N: LLK:Handover card, metadata {status: proposed}
+  F->>S: PATCH handover (accept) → metadata {status: accepted}
+  O->>S: POST returned · F->>S: POST returned → item closed, karma
+```
+
+### Every Nexconn feature we use
 
 | Nexconn capability | How LostLink uses it | Code |
 | --- | --- | --- |
-| Platform Chat API: access tokens | Every account is registered with Nexconn at sign-up; tokens refresh after error 31004 | `src/lib/nexconn/server.ts`, `src/app/api/nexconn/token` |
-| Web Chat SDK connection | One engine per tab, Singapore data centre, handlers registered before connect, retry with backoff, reconnect banner, multi-device kick handling | `src/components/chat/chat-provider.tsx` |
-| Direct channels | Private claim chat between owner and finder | `src/components/chat/use-conversation.ts`, `chat-room.tsx` |
-| Group channels | Desk staff room: created, joined and dismissed through the server API; bot posts new items and claims | `src/lib/desks.ts`, `src/components/chat/group-chat.tsx` |
-| System channel (server-sent) | Match, alert, claim, handover and expiry notices from the LostLink bot | `src/lib/notify.ts` |
-| Custom message types | `LLK:ClaimCard`, `LLK:ClaimResult`, `LLK:Handover`, `LLK:Notice`, `LLK:DeskNotice` | `src/lib/nexconn/messages.ts`, `src/components/chat/message-view.tsx` |
-| Message metadata | Claim card state (pending → approved/declined → returned) and handover state (proposed → confirmed) updated by the server, pushed live to both sides | `src/lib/claims.ts` |
-| Server-side messaging | Authoritative cards sent with `isEchoToSender`, `verifyBlocklist`, `hasMetadata` | `src/lib/nexconn/server.ts` |
-| Location messages | Meeting point with an OpenStreetMap thumbnail | `src/lib/map-thumb.ts`, `use-conversation.ts` |
-| Image messages | Photos in chat via SDK media upload with progress | `use-conversation.ts` |
+| Access token issue (registers the user) | Every account is registered at sign-up. Tokens remember the App Key that issued them and are re-issued automatically if the key changes or after error 31004 | `src/lib/nexconn/users.ts`, `src/app/api/nexconn/token/route.ts` |
+| Web SDK init and connection | One engine per tab, Singapore area, custom messages and handlers registered before connect, retry with backoff, "reconnecting" pill, multi-device kick (31010) | `src/components/chat/chat-provider.tsx` |
+| Direct channels | The private claim chat between owner and finder | `src/components/chat/use-conversation.ts`, `chat-room.tsx` |
+| Group channels | Desk staff room, created, joined and left through the server API; recreated with its members if missing under the current App Key | `src/lib/desks.ts`, `src/components/chat/group-chat.tsx` |
+| System channel (server-sent) | Match, alert, claim, decision, handover and expiry notices from the `llklostlinkbot` sender | `src/lib/notify.ts` |
+| Custom message types | `LLK:ClaimCard`, `LLK:ClaimResult`, `LLK:Handover`, `LLK:Notice`, `LLK:DeskNotice`, rendered as ticket-style cards | `src/lib/nexconn/messages.ts`, `src/components/chat/message-view.tsx` |
+| Message metadata | Card state (claim and handover) updated by the server and pushed live to both sides | `src/lib/claims.ts`, `server.ts setDirectMessageMetadata` |
+| Server-side direct messages | Authoritative cards sent with `isEchoToSender`, `verifyBlocklist`, `hasMetadata` | `src/lib/nexconn/server.ts` |
+| Text, image and location messages | Chat text, photos with upload progress, meeting point with an OpenStreetMap thumbnail | `use-conversation.ts`, `src/lib/map-thumb.ts` |
 | Read receipts | "Read" ticks on direct messages | `use-conversation.ts` |
 | Typing indicators | "typing…" in the chat header | `use-conversation.ts`, `chat-room.tsx` |
 | Unread counts and channel list | Badge on Chats, per-conversation unread and previews | `chat-provider.tsx`, `chat-list.tsx` |
-| History pagination | "Load earlier messages", refresh after offline sync | `use-conversation.ts` |
-| User blocklist | Block/unblock from the safety menu | `src/app/api/blocks/route.ts` |
+| History pagination and offline sync | "Load earlier messages", refetch after `onOfflineMessageSyncCompleted` | `use-conversation.ts` |
+| User blocklist | Block and unblock from the safety menu; re-synced from Postgres when a user is registered under a new App Key | `src/app/api/blocks/route.ts`, `users.ts` |
+
+**Swapping the App Key is an env change only.** Users are re-registered lazily the next time
+they connect or are messaged, their blocklists are copied back, and desk staff groups are recreated
+with their members. All Nexconn ids are prefixed `llk` so the app can share a key with other apps.
+
+## Design
+
+The look comes from station wayfinding and lost-property claim tickets: transit navy `#10243A`,
+wayfinding yellow `#FFC21A` for Found and primary actions, exit-sign green `#12805C` for returned
+and approved, alert red `#C8321E`, on a cool paper `#F2F3EE`. Type is Overpass (descended from US
+highway signage) for headings and Atkinson Hyperlegible for reading. Items are cut like claim
+tickets with a perforated stub and reference code; the home page opens with a split-flap "lost
+property board" of real posts, and "how it works" is a metro line that fills as you scroll.
 
 ## Tech stack
 
@@ -78,22 +161,43 @@ posters and link previews · bcrypt + JWT cookie auth · zod · Playwright + Vit
 
 ```bash
 npm install
-vercel env pull .env.local --yes   # or create .env.local with the variables in AGENTS.md
-npm run db:migrate
+vercel env pull .env.local --yes   # or create .env.local with the variables below
+npm run db:migrate                 # applies drizzle/ migrations
 npm run dev                        # http://localhost:3104
 ```
 
-Tests:
+Environment variables (names only): `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
+`BLOB_READ_WRITE_TOKEN`, `NEXCONN_APP_KEY`, `NEXCONN_APP_SECRET`, `NEXCONN_API_BASE`,
+`NEXCONN_ID_PREFIX`, `SESSION_SECRET`, `CRON_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`,
+`GEMINI_FALLBACK_MODEL`, `GEMINI_EMBED_MODEL`, optional `NEXT_PUBLIC_APP_URL`. Only the App Key
+ever reaches the browser.
 
 ```bash
-npm test                                                    # unit tests (Vitest)
-npm run test:e2e                                            # two-user e2e against localhost:3104
+npm run typecheck && npm run lint
+npm test                                                     # unit tests (Vitest)
+npm run test:e2e                                             # two-user e2e against localhost:3104
 E2E_BASE_URL=https://lostlink-bay.vercel.app npm run test:e2e   # against production
+SCREENSHOTS=1 npm run test:e2e                               # also refresh docs/screenshots
+node scripts/generate-icons.mjs                              # rebuild favicon and app icons
+vercel deploy --prod                                         # build and deploy
 ```
 
-The e2e suite uses the real stack (Nexconn, Gemini, Neon, Blob) with two browser contexts and
-deletes its test accounts when done.
+The e2e suite drives the real stack (Nexconn, Gemini, Neon, Blob) with two phones: a lost post, a
+found post with AI pre-fill, a live match notice, a claim, approval, chat with receipts and typing,
+a meeting point, both sides confirming the return, a thank-you and karma; then a desk with its QR
+poster, staff invite and staff chat. Test accounts delete themselves.
 
-See [AGENTS.md](AGENTS.md) for architecture, data model, conventions and known limitations.
+## Project map
+
+```
+src/app/            pages (App Router), API route handlers, icons, robots, sitemap, OG images
+src/components/     app shell, chat (provider, room, cards, composer), landing, maps, forms, UI kit
+src/lib/            db schema, Nexconn server client and user registration, claims state machine,
+                    matching and scoring, Gemini, search, desks, notifications, posters
+drizzle/            SQL migrations          e2e/   Playwright two-user tests
+tests/              Vitest unit tests       docs/  screenshots, demo video, Nexconn integration PDF
+```
+
+See [AGENTS.md](AGENTS.md) for the architecture, data model, conventions and known limitations.
 
 Test photo: "Leather bi-fold wallet by Eugene Pik (2021)", Wikimedia Commons, CC BY-SA 4.0.

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
+import { Bell } from "lucide-react";
 import { db, schema } from "@/lib/db";
 import { currentUser } from "@/lib/auth/session";
 import { NotificationList } from "@/components/notification-list";
+import { PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Notifications" };
 
@@ -18,9 +20,9 @@ export default async function NotificationsPage() {
     .orderBy(desc(n.createdAt))
     .limit(50);
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="text-3xl font-extrabold">Notifications</h1>
-      <div className="mt-6">
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <PageHeader icon={<Bell />} title="Notifications" description="Matches, claims and handover updates. They also pop up live while you use LostLink." />
+      <div className="mt-8">
         <NotificationList
           initial={rows.map((r) => ({ ...r, readAt: r.readAt?.toISOString() ?? null, createdAt: r.createdAt.toISOString() }))}
         />

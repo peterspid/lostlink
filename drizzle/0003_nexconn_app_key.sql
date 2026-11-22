@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "nexconn_app_key" text;

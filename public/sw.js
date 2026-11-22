@@ -1,9 +1,10 @@
 /* LostLink service worker: installable PWA with an offline fallback. API calls and chat are never cached. */
-const CACHE = "llk-v1";
+const CACHE = "llk-v2";
 const OFFLINE_URL = "/offline";
+const PRECACHE = [OFFLINE_URL, "/icons/icon-192.png", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, "/icons/192"])).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -21,14 +22,17 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
+  // Immutable build assets and icons: cache first.
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
           hit ||
           fetch(req).then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE).then((c) => c.put(req, copy));
+            }
             return res;
           }),
       ),

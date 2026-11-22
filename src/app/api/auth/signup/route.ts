@@ -18,13 +18,18 @@ export const POST = handle(async (req: Request) => {
 
   const id = newId();
   const ncId = nexconnId(env().NEXCONN_ID_PREFIX);
-  // Registers the user with Nexconn and returns a permanent access token.
-  const token = await issueAccessToken(ncId, input.name);
+  // Registers the user with Nexconn and returns a permanent access token. If Nexconn is
+  // unreachable the account is still created; /api/nexconn/token issues the token later.
+  const token = await issueAccessToken(ncId, input.name).catch((err) => {
+    console.error("[signup] nexconn token issue failed", err);
+    return null;
+  });
   const passwordHash = await bcrypt.hash(input.password, 11);
   await db().insert(schema.users).values({
     id,
     nexconnId: ncId,
     nexconnToken: token,
+    nexconnAppKey: token ? env().NEXCONN_APP_KEY : null,
     email: input.email,
     passwordHash,
     name: input.name,

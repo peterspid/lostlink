@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { newId } from "@/lib/ids";
 import { MSG, type NoticeContent } from "@/lib/nexconn/messages";
 import { sendSystemMessage } from "@/lib/nexconn/server";
+import { ensureRegistered, nexconnUserColumns } from "@/lib/nexconn/users";
 
 /**
  * Deliver a notification: persist it for the in-app notification center and push it
@@ -16,10 +17,8 @@ export async function notify(userIds: string[], notice: NoticeContent) {
     .insert(schema.notifications)
     .values(ids.map((userId) => ({ id: newId(), userId, kind: notice.kind, title: notice.title, body: notice.body, href: notice.href })));
   try {
-    const rows = await db()
-      .select({ nexconnId: schema.users.nexconnId })
-      .from(schema.users)
-      .where(inArray(schema.users.id, ids));
+    const rows = await db().select(nexconnUserColumns).from(schema.users).where(inArray(schema.users.id, ids));
+    await ensureRegistered(rows);
     await sendSystemMessage(
       rows.map((r) => r.nexconnId),
       MSG.NOTICE,

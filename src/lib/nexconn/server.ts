@@ -210,8 +210,17 @@ export async function createGroup(channelId: string, name: string, owner: string
   });
 }
 
+/** True when the group channel exists under the current App Key (profile/list returns nothing otherwise). */
+export async function groupExists(channelId: string): Promise<boolean> {
+  const res = await call<{ result?: { profiles?: { channelId: string }[] } }>("/v4/group-channel/profile/list", { channelIds: [channelId] });
+  return !!res.result?.profiles?.some((p) => p.channelId === channelId);
+}
+
 export async function joinGroup(channelId: string, userIds: string[]) {
-  await call("/v4/group-channel/join", { channelId, userIds });
+  // The API accepts at most 30 users per request.
+  for (let i = 0; i < userIds.length; i += 30) {
+    await call("/v4/group-channel/join", { channelId, userIds: userIds.slice(i, i + 30) });
+  }
 }
 
 export async function leaveGroup(channelId: string, userIds: string[]) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Crosshair, Search } from "lucide-react";
 import { PickerMap } from "@/components/map";
 import { Button, Input, cx } from "@/components/ui";
@@ -34,12 +34,22 @@ export function LocationField({
   const [results, setResults] = useState<PlaceResult[] | null>(null);
   const [searching, setSearching] = useState(false);
 
+  // The latest value, so a slow reverse-geocode never overwrites a name typed in the meantime.
+  const latest = useRef(value);
+  useEffect(() => {
+    latest.current = value;
+  });
+
   async function setPoint(lat: number, lng: number, label?: string) {
     const current = value?.label ?? "";
-    onChange({ lat, lng, label: label ?? current });
+    const next = { lat, lng, label: label ?? current };
+    latest.current = next;
+    onChange(next);
     if (autoLabel && label === undefined) {
       const name = await reverseGeocode(lat, lng);
-      if (name) onChange({ lat, lng, label: name });
+      const now = latest.current;
+      const untouched = now && now.lat === lat && now.lng === lng && now.label === next.label;
+      if (name && untouched) onChange({ lat, lng, label: name });
     }
   }
 
@@ -74,14 +84,14 @@ export function LocationField({
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex gap-2">
-        <Button type="button" variant="outline" onClick={useMyLocation} loading={locating} icon={<Crosshair className="size-4" aria-hidden />}>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button type="button" variant="outline" onClick={useMyLocation} loading={locating} icon={<Crosshair className="size-4" aria-hidden />} className="h-12">
           Use my location
         </Button>
         <div className="relative flex-1">
           <Input
             aria-label="Search for a place"
-            placeholder="Search a place"
+            placeholder="Or search a place, e.g. Central Station"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -92,7 +102,7 @@ export function LocationField({
           <button
             type="button"
             onClick={() => void runSearch()}
-            className="absolute right-1 top-1 flex size-10 items-center justify-center rounded-md text-ink-2 hover:bg-wash"
+            className="absolute right-1 top-1 flex size-10 items-center justify-center rounded-lg text-ink-2 hover:bg-wash"
             aria-label="Search"
             disabled={searching}
           >
@@ -101,7 +111,7 @@ export function LocationField({
         </div>
       </div>
       {results && results.length > 0 && (
-        <ul className="overflow-hidden rounded-lg border border-line-strong bg-surface">
+        <ul className="animate-rise overflow-hidden rounded-2xl border border-line-strong bg-surface shadow-[var(--shadow-lift)]">
           {results.map((r) => (
             <li key={`${r.lat},${r.lng}`}>
               <button
@@ -118,8 +128,8 @@ export function LocationField({
           ))}
         </ul>
       )}
-      {error && <p className="text-sm text-alert">{error}</p>}
-      <div className={cx("overflow-hidden rounded-xl border border-line-strong", mapClassName)}>
+      {error && <p className="text-sm font-semibold text-alert">{error}</p>}
+      <div className={cx("overflow-hidden rounded-2xl border border-line-strong", mapClassName)}>
         <PickerMap value={value} onChange={(lat, lng) => void setPoint(lat, lng)} className="h-full w-full" radiusM={radiusM} />
       </div>
       <p className="text-sm text-ink-3">{value ? "Drag the pin or tap the map to adjust." : "Tap the map to drop a pin."}</p>

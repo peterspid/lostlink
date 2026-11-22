@@ -58,7 +58,7 @@ item already returned; expired posts.
 ## Live
 
 - Production: https://lostlink-bay.vercel.app (Vercel project `lostlink`, region `sin1`)
-- Repo: https://github.com/imthegoodboy/lostlink (private)
+- Repo: https://github.com/peterspid/lostlink
 
 ## Architecture
 
@@ -86,7 +86,7 @@ Platform Chat API to send/update the card in the users' direct channel.
 
 ```
 src/app/                    pages (App Router) and API route handlers
-  page.tsx                  home: lost/found entry points, recent items
+  page.tsx                  home: split-flap board, wayfinding sign, route line, chat demo, desk band
   browse/                   map + list search with filters
   report/                   report wizard (photos → details → where/when)
   items/[id]/               item page (+ opengraph-image.tsx, claim/ form)
@@ -94,15 +94,20 @@ src/app/                    pages (App Router) and API route handlers
   alerts/ notifications/ profile/
   desks/ (new, [slug], [slug]/manage, join/[token])
   api/                      REST endpoints (auth, items, claims, alerts, desks, uploads, ai, cron…)
-  manifest.ts icons/[size]/ offline/   PWA
+  manifest.ts offline/ icon.svg favicon.ico apple-icon.png   PWA + icons (scripts/generate-icons.mjs)
+  robots.ts sitemap.ts opengraph-image.tsx privacy/ error.tsx global-error.tsx
 src/components/
   chat/                     chat-provider (SDK engine), use-conversation (history, live, sends),
-                            chat-room (claim flow), group-chat, message-view (cards), composer
+                            chat-room (claim flow), group-chat, message-view (ticket cards), composer
+  landing/                  board (split-flap), wayfinding-sign, route-line, chat-demo, privacy-ticket, desk-band
+  motion.tsx                Reveal (IntersectionObserver) and ScrollProgress (--p) primitives
+  app-shell, site-footer, auth-shell, item-gallery, logo (LogoMark + wordmark)
   map/                      Leaflet + OSM (client-only)
   report-form, browse-view, location-field, item-tag, item-actions (safety menu), ui, sheet…
 src/lib/
   db/ (schema.ts, index.ts) Drizzle schema + Neon client with connect-retry
-  nexconn/server.ts         Platform Chat API client (signature, retries, backup host)
+  nexconn/server.ts         Platform Chat API client (signature, retries, backup host, groupExists)
+  nexconn/users.ts          lazy (re-)registration: tokens remember their App Key, blocklist re-sync
   nexconn/messages.ts       custom message type names + payload types (shared)
   gemini.ts                 vision pre-fill + embeddings (retry, fallback, timeouts)
   match-score.ts            pure scoring + readable reasons (unit tested)
@@ -118,7 +123,7 @@ docs/screenshots/           screenshots captured by the e2e run
 
 ## Data model (Postgres, `src/lib/db/schema.ts`)
 
-- `users` id, nexconn_id (`llk`+random), nexconn_token, email, password_hash, name, karma, returned_count
+- `users` id, nexconn_id (`llk`+random), nexconn_token, nexconn_app_key (key that issued the token), email, password_hash, name, karma, returned_count
 - `items` id, code (5-char ref), owner_id, desk_id?, kind lost|found, status open|claimed|returned|closed|expired|hidden,
   category, title, description, attributes {color, brand, material, marks[]}, photos[], lat/lng (exact),
   public_lat/lng (fuzzed ~300 m), place_label, occurred_from/to, expires_at (+60 d), embedding vector(768) HNSW
@@ -135,21 +140,21 @@ docs/screenshots/           screenshots captured by the e2e run
 
 | Feature | Where |
 | --- | --- |
-| Access token issue (registers user) | `lib/nexconn/server.ts` `issueAccessToken`; `api/auth/signup`, `api/nexconn/token` (POST refresh after 31004) |
+| Access token issue (registers user) | `lib/nexconn/server.ts` `issueAccessToken`; `lib/nexconn/users.ts` (`chatToken`, `ensureRegistered`); `api/auth/signup`, `api/nexconn/token` (GET reissues tokens from another App Key, POST refresh after 31004) |
 | Web SDK init (SG area), handlers before connect, connect, retry/backoff, 31004 refresh, 31010 kick | `components/chat/chat-provider.tsx` |
 | Custom message types `LLK:ClaimCard`, `LLK:ClaimResult`, `LLK:Handover`, `LLK:Notice`, `LLK:DeskNotice` | `lib/nexconn/messages.ts` (registered in provider, rendered in `chat/message-view.tsx`) |
 | Server-sent direct messages (`isEchoToSender`, `verifyBlocklist`, `hasMetadata`) | `server.ts sendDirectMessage`; used in `lib/claims.ts` for claim/result/handover cards |
 | Message metadata (claim state, handover state) | `server.ts setDirectMessageMetadata` from `claims.ts`; client `onMessageMetadataUpdated` → `use-conversation.ts` |
 | System channel messages (match, alert, claim, handover, expiry notices) | `lib/notify.ts` → `sendSystemMessage`; client detects `ChannelType.SYSTEM` → toast + notification centre |
 | Direct channels (claim chats) | `chat/use-conversation.ts` (`DirectChannel`), `chat/chat-room.tsx` |
-| Group channels (desk staff) | server create/join/leave/dismiss + bot group messages (`lib/desks.ts`, `server.ts`); client `GroupChannel` in `chat/group-chat.tsx` |
+| Group channels (desk staff) | server create/join/leave/dismiss + bot group messages (`lib/desks.ts`, `server.ts`); `ensureDeskGroup` recreates a group missing under the current App Key (`/v4/group-channel/profile/list`); client `GroupChannel` in `chat/group-chat.tsx` |
 | Text, image (`Helper.createSendImageMessageParams` + `sendMediaMessage` with progress), location (`SendLocationMessageParams` + OSM thumbnail) | `use-conversation.ts`, `lib/map-thumb.ts`, `chat/composer.tsx` |
 | Read receipts (`needReceipt`, `sendReadReceiptResponse`, `getMessageReadReceiptInfo`, `onMessageReceiptResponse`) | `use-conversation.ts` |
 | Typing indicators (`sendTypingStatus`, `onTypingStatusChanged`) | `use-conversation.ts`, chat header |
 | Unread counts (`getTotalUnreadCount`, channel `unreadCount`, `clearUnreadCount`) | provider (nav badge), `chat/chat-list.tsx` |
 | Channel list with latest message previews (`createChannelsQuery`) | `chat/chat-list.tsx` |
 | History pagination (`createMessagesQuery().loadNextPage`), refetch after `onOfflineMessageSyncCompleted` | `use-conversation.ts` |
-| User blocklist (`/v4/user/blocklist/add`, `/remove`) | `api/blocks/route.ts` |
+| User blocklist (`/v4/user/blocklist/add`, `/remove`) | `api/blocks/route.ts`; re-synced from Postgres on re-registration (`users.ts`) |
 
 All Nexconn user ids and group ids are `NEXCONN_ID_PREFIX` (`llk`) + random alphanumerics. The bot
 sender is `llklostlinkbot`.
@@ -187,8 +192,14 @@ vercel deploy --prod                  # remote build + deploy
 - Gemini: always read model names from env, retry 429/503 with backoff, fall back to the second
   model, cap output tokens, and keep the form usable when AI is unavailable.
 - Pure logic (scoring, geo, text matching) lives in side-effect-free modules with unit tests.
-- Design: four colours only (paper, ink, signal yellow, alert red), Overpass + Atkinson Hyperlegible
-  Next, lucide icons, no gradients. Lost = ink outline tag, Found = yellow tag.
+- Design: station wayfinding + claim tickets. Colours: paper `#F2F3EE`, ink (transit navy)
+  `#10243A`, signal (wayfinding yellow) `#FFC21A`, go (exit green) `#12805C` for approved/returned,
+  alert `#C8321E`; everything else is a tint (tokens in `globals.css`). Overpass + Atkinson
+  Hyperlegible Next, lucide icons, no decorative gradients. Lost = navy luggage tag, Found = yellow
+  luggage tag (`KindMark`). Page titles use `PageHeader` with a pictogram plate; items are claim
+  tickets (`ItemTag`). Motion only where it means something (board flip on load, scroll-filled
+  route line, chat demo, feedback on actions); everything respects `prefers-reduced-motion`.
+- Post-login redirects go through `lib/safe-next.ts`.
 - Commits end with the Co-Authored-By line; work lands through squash-merged PRs.
 
 ## Testing
@@ -201,7 +212,7 @@ vercel deploy --prod                  # remote build + deploy
   thank-you and karma. Second test: desk creation, QR poster PNG/PDF, invite link, staff group chat.
   Test accounts delete themselves (`DELETE /api/auth/account`).
 - `tests/*.test.ts`: Vitest unit tests for scoring, explanations, geo fuzzing, time, answer and
-  alert text matching.
+  alert text matching, and the post-login redirect guard.
 
 ## Known limitations
 
@@ -212,6 +223,8 @@ vercel deploy --prod                  # remote build + deploy
 - Claims on desk items go to the staff member who logged the item; other staff see them in the
   inventory and are told in the staff group chat.
 - Reported items are auto-hidden after 3 independent reports; there is no admin review UI yet.
-- The Nexconn App Key is shared with other apps; ids are prefixed `llk` so a dedicated key can be
-  swapped in through env vars only.
+- The Nexconn App Key may be shared with other apps; ids are prefixed `llk`. Swapping keys is an
+  env change only: users, blocklists and desk groups are re-created lazily under the new key, but
+  chat history from the old key does not carry over (claim state lives in Postgres, so flows
+  continue).
 - Chat photos use Nexconn's file storage; item photos use Vercel Blob.

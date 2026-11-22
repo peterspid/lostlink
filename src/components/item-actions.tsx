@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Ban, Flag, MoreHorizontal, RefreshCw, RotateCcw, XCircle } from "lucide-react";
+import { Ban, Flag, MoreHorizontal, RefreshCw, RotateCcw, Settings2, XCircle } from "lucide-react";
 import { api, ApiError } from "@/lib/client-api";
 import { Banner, Button, Select, Textarea, cx } from "@/components/ui";
 import { Sheet } from "@/components/sheet";
@@ -28,7 +28,10 @@ export function OwnerActions({ itemId, status, expiringSoon }: { itemId: string;
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded-3xl border border-line bg-surface p-4">
+      <p className="flex items-center gap-2 font-display font-extrabold">
+        <Settings2 className="size-4" aria-hidden /> Your post
+      </p>
       {error && <Banner tone="error">{error}</Banner>}
       {(status === "expired" || expiringSoon) && (
         <Banner
@@ -159,7 +162,7 @@ export function SafetyMenu({ itemId, userId, userName, blocked: initialBlocked =
           setMode("menu");
           setError(null);
         }}
-        className="flex size-10 items-center justify-center rounded-lg text-ink-2 hover:bg-wash hover:text-ink"
+        className="flex size-10 items-center justify-center rounded-xl text-ink-2 transition-colors hover:bg-wash hover:text-ink"
         aria-label="Report or block"
         data-testid="safety-menu"
       >
@@ -219,4 +222,4 @@ export function SafetyMenu({ itemId, userId, userName, blocked: initialBlocked =
   );
 }
 
-const menuRow = "flex w-full items-start gap-3 rounded-lg border border-line p-3.5 text-left hover:border-ink";
+const menuRow = "flex w-full items-start gap-3 rounded-2xl border border-line p-4 text-left transition-colors hover:border-ink/50 hover:bg-wash/60 [&>svg]:mt-0.5 [&>svg]:shrink-0";
